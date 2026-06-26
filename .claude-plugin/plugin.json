@@ -1,0 +1,12 @@
+{
+  "name": "gitbook",
+  "description": "Comprehensive skill for GitBook documentation — create, manage, and author GitBook sites end-to-end via the GitBook REST API and Git Sync.",
+  "version": "1.0.0",
+  "author": {
+    "name": "GitBook",
+    "url": "https://gitbook.com"
+  },
+  "homepage": "https://github.com/GitbookIO/gitbook-ai",
+  "repository": "https://github.com/GitbookIO/gitbook-ai",
+  "license": "MIT"
+}

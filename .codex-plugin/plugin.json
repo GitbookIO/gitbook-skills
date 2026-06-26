@@ -1,0 +1,40 @@
+{
+  "name": "gitbook",
+  "version": "0.1.0+codex.20260625194214",
+  "description": "Use GitBook's public skill for GitBook site orchestration and page authoring in Codex.",
+  "author": {
+    "name": "Local developer"
+  },
+  "homepage": "https://gitbook.com/docs",
+  "keywords": [
+    "gitbook",
+    "documentation",
+    "mcp",
+    "docs",
+    "git-sync",
+    "markdown"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GitBook",
+    "shortDescription": "Build and edit GitBook docs in Codex.",
+    "longDescription": "Packages GitBook's public GitBook skill for Codex, covering site orchestration, GitBook REST API workflows, Git Sync handoffs, branding customization, migrations, and GitBook-flavored Markdown authoring. Also includes a read-only MCP connection to GitBook's published product documentation.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Documentation",
+      "MCP",
+      "Read",
+      "Write",
+      "Automation"
+    ],
+    "websiteURL": "https://gitbook.com/docs",
+    "brandColor": "#346DDB",
+    "defaultPrompt": [
+      "Use GitBook to draft this docs page.",
+      "Plan a GitBook site structure for this product.",
+      "Prepare a GitBook Git Sync handoff."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
