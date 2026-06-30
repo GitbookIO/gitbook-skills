@@ -284,12 +284,3 @@ jobs:
             <path_to_spec>
 ```
 
-## When you need more
-
-Every GitBook docs page has a Markdown twin (append `.md` to the URL) and an agent query endpoint. If something here is not enough, query the live docs directly with a natural-language question:
-
-```
-GET https://gitbook.com/docs/api-references/openapi.md?ask=<question>
-```
-
-The response returns a direct answer plus relevant source excerpts. The full documentation index is at https://gitbook.com/docs/llms.txt. Use these for edge cases, newly shipped extensions, or anything not covered above, rather than guessing.
