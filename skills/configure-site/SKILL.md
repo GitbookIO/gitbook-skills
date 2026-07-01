@@ -36,15 +36,7 @@ Don't start scaffolding until these are known. If something is missing, ask once
   [ -n "$GITBOOK_TOKEN" ] && echo "Token found" || echo "GITBOOK_TOKEN is not set"
   ```
 
-  If `GITBOOK_TOKEN` is not set, try to source it from a secrets manager first, but don't assume the user has one — most new users won't:
-
-  ```bash
-  # Only if the relevant CLI is installed and the user has told you where the secret lives
-  command -v op >/dev/null 2>&1 && export GITBOOK_TOKEN=$(op read "op://vault/item/token")   # 1Password
-  # equivalent lookups for AWS SSM, Vault, etc.
-  ```
-
-  If no secrets manager is available, or the lookup fails, fall back to asking the user directly:
+  If `GITBOOK_TOKEN` is not set, ask the user directly:
   1. Tell them they need a GitBook personal access token. Direct them to **https://app.gitbook.com/account/developer** to create one.
   2. Ask them to paste the token into the conversation. Immediately export it as an environment variable (`export GITBOOK_TOKEN=<pasted value>`) and don't repeat it back in your response.
   3. Do not proceed with any API calls until the token is confirmed present in the environment.

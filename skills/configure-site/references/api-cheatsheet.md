@@ -6,7 +6,7 @@ This cheatsheet is scoped to what the `configure-site` skill actually needs. The
 
 ## Auth and discovery
 
-`GITBOOK_TOKEN` should already be set in the environment by the time you reach this cheatsheet — see the token acquisition flow in `SKILL.md` (try a secrets manager if the user has one, otherwise prompt them to paste a personal access token created at https://app.gitbook.com/account/developer). Never store it on disk, never echo it back, never commit it.
+`GITBOOK_TOKEN` should already be set in the environment by the time you reach this cheatsheet — see the token acquisition flow in `SKILL.md` (prompt the user to paste a personal access token created at https://app.gitbook.com/account/developer). Never store it on disk, never echo it back, never commit it.
 
 ```bash
 # Verify token and get the authenticated user
