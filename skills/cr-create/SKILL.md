@@ -2,7 +2,7 @@
 name: cr-create
 metadata:
   version: "1.0"
-description: Drive an end-to-end GitBook docs review flow from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — create a change request, push content (update an existing page AND create a new page), request reviewers, notify Slack, then pull review comments back in, fix them, re-push, and resolve. This is the authoring-side companion to cr-review (the reviewer side over the same API). Use this whenever someone wants to run a "docs review in GitBook" loop from the terminal/agent against the raw API (curl/HTTP), mentions creating a change request via the API, pushing content into a CR, "pull in the latest comments and fix them," requesting review on docs, or showing engineers how to collaborate on GitBook docs from Claude + Slack without a CLI. Also triggers for the Chime review-flow demo when the direct-API path is wanted.
+description: Drive an end-to-end GitBook docs review flow from Claude Code by calling the GitBook REST API directly with curl (no CLI) — create a change request, push content (update an existing page AND create a new page), request reviewers, notify Slack, then pull review comments back in, fix them, re-push, and resolve. This is the authoring-side companion to cr-review (the reviewer side over the same API). Use this whenever someone wants to run a "docs review in GitBook" loop from the terminal/agent against the raw API (curl/HTTP), mentions creating a change request via the API, pushing content into a CR, "pull in the latest comments and fix them," requesting review on docs, or showing engineers how to collaborate on GitBook docs from Claude + Slack without a CLI. Also triggers for the Chime review-flow demo when the direct-API path is wanted.
 ---
 
 # GitBook Review Flow (direct API)
@@ -25,7 +25,7 @@ something that doesn't actually work. Keep it that way: never fake an output.
 
 Every call is a Bearer-authenticated request to `https://api.gitbook.com/v1`. The token
 lives in **`GITBOOK_TOKEN`** in the repo-root `.env` (create one at
-https://app.gitbook.com/account/developer). It is the API equivalent of `gitbook2 auth`.
+https://app.gitbook.com/account/developer).
 **Never print the token; never write it to a tracked file.** If it's missing, prompt the
 user for it and write it to `.env`; don't invent one.
 
@@ -90,19 +90,18 @@ Each item in `changes` is discriminated by `operation`:
 The markdown round-trip is **LOSSY** — see "Editing an existing page safely" before you
 re-push an edited page.
 
-### Differences from the `gitbook2` CLI version
+### API behaviors to watch
 
-- **No `--json` flag / no `whoami` special case.** Every endpoint returns JSON; `GET /user`
-  is just JSON with an `.id`.
-- **The `authors` comment filter works over the raw API.** `GET …/comments?authors=<id>` is
-  a real array query param server-side (repeat `authors=` for several). The CLI's
-  `--authors` 500 was a *CLI* serialization bug and does **not** apply here. You still pull
-  **all** comments and split human vs agent on `postedBy.id` (see "Two operations") — a
-  filter narrows, it doesn't classify — but the server-side filter is available if you want it.
-- **There is no `--normalize`.** The CLI had `content update --normalize` that stripped the
-  duplicated leading H1 and collapsed multi-line `{% … %}` blocks before sending. The raw
-  API does none of that. **You must do those transforms yourself** before every push (see
-  "Editing an existing page safely"). This is the biggest behavioral difference — don't skip it.
+- **Every endpoint returns JSON.** `GET /user` is just JSON with an `.id` — pipe every
+  response through `jq`.
+- **The `authors` comment filter works server-side.** `GET …/comments?authors=<id>` is a
+  real array query param (repeat `authors=` for several). You still pull **all** comments and
+  split human vs agent on `postedBy.id` (see "Two operations") — a filter narrows, it doesn't
+  classify — but the server-side filter is available if you want it.
+- **Nothing normalizes content for you.** The API does not strip the duplicated leading H1 or
+  collapse multi-line `{% … %}` blocks before sending. **You must do those transforms
+  yourself** before every push (see "Editing an existing page safely"). This is the easiest
+  thing to get wrong — don't skip it.
 
 ## Prerequisites
 
@@ -219,7 +218,7 @@ gbapi PUT "/spaces/<space>/change-requests/<cr>/comments/<commentId>" \
 ## Editing an existing page safely (markdown round-trip)
 
 `update_page` is full-replace and markdown-only, and `get → edit → push` is **not** lossless.
-There is no `--normalize` on the raw API, so **you** must fix three things before every push:
+Nothing normalizes the content for you, so **you** must fix three things before every push:
 
 1. **Strip the leading `# <Title>` line before re-pushing.** The page title is stored
    separately; `…/page?format=markdown` emits it as the first line, but pushing it back as

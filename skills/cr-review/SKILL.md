@@ -2,7 +2,7 @@
 name: cr-review
 metadata:
   version: "1.0"
-description: Review GitBook change requests from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — the reviewer-side companion to cr-create (the authoring side over the same API). Discover the change requests that need review (filter by who opened them, by space, or across a whole org), get the GitBook app link to review the diff, summarize what actually changed in a CR, then leave comments and optionally submit a review verdict (approve / request changes). Use this whenever someone wants to review docs change requests over the raw API (curl/HTTP), asks "what CRs are open / waiting on me / opened by <person>", "show me the change requests in <space>/<org>", "summarize what changed in this CR", "review this change request", "leave a comment on a CR", or "approve / request changes on a CR". For the authoring side (create a CR, push content, request reviewers, fix comments) over the API, use cr-create instead.
+description: Review GitBook change requests from Claude Code by calling the GitBook REST API directly with curl (no CLI) — the reviewer-side companion to cr-create (the authoring side over the same API). Discover the change requests that need review (filter by who opened them, by space, or across a whole org), get the GitBook app link to review the diff, summarize what actually changed in a CR, then leave comments and optionally submit a review verdict (approve / request changes). Use this whenever someone wants to review docs change requests over the raw API (curl/HTTP), asks "what CRs are open / waiting on me / opened by <person>", "show me the change requests in <space>/<org>", "summarize what changed in this CR", "review this change request", "leave a comment on a CR", or "approve / request changes on a CR". For the authoring side (create a CR, push content, request reviewers, fix comments) over the API, use cr-create instead.
 ---
 
 # GitBook CR Review (direct API)
@@ -74,17 +74,16 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
   (`draft`/`open`/`archived`/`merged`) — for "any state," union client-side; default discovery
   to `status=open`.
 - The comments `authors` filter **does** work over the raw API (`…/comments?authors=<id>`,
-  repeatable) — the CLI's `--authors` 500 was a CLI serialization bug, not an API limitation.
-  Even so, to split human vs agent you pull **all** comments and classify on `postedBy.id`
-  (a filter narrows, it doesn't classify).
+  repeatable). Even so, to split human vs agent you pull **all** comments and classify on
+  `postedBy.id` (a filter narrows, it doesn't classify).
 
-### Differences from the `gitbook2` CLI version
+### API behaviors to watch
 
-- **No `--json` flag / no `whoami` special case.** Every endpoint returns JSON; `GET /user`
-  yields your `.id` directly.
-- **`authors` server-side filter is available** (see above).
-- **Pagination is invisible** (same as the CLI): list responses return a capped page with no
-  total or next-cursor. Raise `limit` and/or page with `page=` before concluding "not found."
+- **Every endpoint returns JSON.** `GET /user` yields your `.id` directly — pipe every
+  response through `jq`.
+- **The `authors` server-side filter is available** (see above).
+- **Pagination is invisible.** List responses return a capped page with no total or
+  next-cursor. Raise `limit` and/or page with `page=` before concluding "not found."
 
 ## Prerequisites
 
