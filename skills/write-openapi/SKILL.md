@@ -6,7 +6,7 @@ description: >-
   Author, configure, structure, and troubleshoot OpenAPI/Swagger API reference
   documentation in GitBook. Use this whenever a task involves a GitBook OpenAPI
   block or `{% openapi %}` block, adding or updating an OpenAPI/Swagger spec in
-  GitBook (by file, URL, or the `gitbook openapi publish` CLI), generating API
+  GitBook (by file or URL, via the API, MCP, CLI, or app UI), generating API
   reference pages from a spec, configuring the interactive "Test it" runner
   (auth, servers, CORS, proxy), customizing pages with GitBook `x-*` extensions
   (icons, titles, navigation hierarchy, code samples, enum descriptions),
@@ -24,9 +24,29 @@ This skill covers the full surface: getting a spec into GitBook, generating refe
 
 ## How you can talk to GitBook
 
-Most of this skill is just editing the OpenAPI YAML/JSON itself, which is transport-agnostic. But getting a spec *into* GitBook, or generating/inserting reference pages, does touch GitBook — and there's more than one way to do that: the GitBook app UI, the `gitbook openapi publish` CLI command (documented below), and GitBook's MCP server. Check what's actually available in the current session before improvising a UI walkthrough — if GitBook MCP tools are already connected, prefer them for publishing/updating a spec or generating reference pages instead of narrating UI clicks. You already know your own available tools/MCP connections — no need to run a detection script for this.
+Most of this skill — editing the OpenAPI YAML/JSON itself — is transport-agnostic. But getting a spec *into* GitBook, or generating/inserting reference pages, does touch GitBook, and there's more than one way to do that: GitBook's MCP server and the REST API. Check what's actually available in the current session and prefer **MCP first**: if GitBook MCP tools are already connected, use them for anything they cover (publishing/updating a spec, generating reference pages) instead of making direct API calls. Don't run a detection script for this — you already know your own available tools/MCP connections; just use that awareness.
 
-If MCP isn't connected and the task is substantial enough to benefit (publishing a new spec, generating a full reference — not a one-off tweak), offer to set it up: `claude mcp add --transport http gitbook-mcp https://mcp.gitbook.com/mcp` (then `/mcp` to complete OAuth sign-in, or append `--header "Authorization: Bearer $GITBOOK_TOKEN"` to skip the browser flow). Codex equivalent: `codex mcp add gitbook-mcp --url https://mcp.gitbook.com/mcp`. The same personal access token (from https://app.gitbook.com/account/developer, exported as `GITBOOK_TOKEN`) works as the bearer token for the CLI command and MCP alike.
+The steps below are described as outcomes ("add the spec", "generate the reference pages") rather than tied to one transport, so they apply whichever you use. If GitBook MCP tools are connected, call those directly — their own schemas describe their parameters. If you're on the REST API path instead, the exact endpoints and request bodies are in "Add or update a specification" below.
+
+- **GitBook MCP** — a full read/write surface over the same capabilities described below, not a narrower view. If it isn't connected yet and the task is substantial enough to benefit (publishing a new spec, generating a full reference — not a one-off tweak), offer to set it up: `claude mcp add --transport http gitbook-mcp https://mcp.gitbook.com/mcp` (then `/mcp` to complete OAuth sign-in — or append `--header "Authorization: Bearer $GITBOOK_TOKEN"` to skip the browser flow). Codex equivalent: `codex mcp add gitbook-mcp --url https://mcp.gitbook.com/mcp`. Note: this is a different server from GitBook's separate, read-only "published docs" MCP, which only exposes already-published content.
+- **REST API** (`https://api.gitbook.com/v1`) — the fallback when MCP isn't connected, or for anything MCP doesn't cover. Needs `GITBOOK_TOKEN` as a bearer header on every request.
+
+The same personal access token (from https://app.gitbook.com/account/developer) works as the bearer token for both. MCP additionally supports OAuth as a friendlier alternative to pasting a token.
+
+**If you end up needing a token** (REST API path, or MCP without OAuth), check for it at the start of the session:
+
+```bash
+[ -n "$GITBOOK_TOKEN" ] && echo "Token found" || echo "GITBOOK_TOKEN is not set"
+```
+
+If `GITBOOK_TOKEN` is not set, ask the user directly:
+1. Tell them they need a GitBook personal access token. Direct them to **https://app.gitbook.com/account/developer** to create one.
+2. Ask them to paste the token into the conversation. Immediately export it as an environment variable (`export GITBOOK_TOKEN=<pasted value>`) and don't repeat it back in your response.
+3. Do not proceed with any API calls until the token is confirmed present in the environment.
+
+Never write the token to a file, never echo it back in a response, never commit it.
+
+The GitBook CLI's `gitbook openapi publish` command (see "Add or update a specification" below) reaches the same underlying capability as the API and MCP — it's a convenience wrapper, not a separate feature set, and authenticates with the same `GITBOOK_TOKEN`.
 
 ## Key facts to know first
 
@@ -34,8 +54,7 @@ These shape almost every decision, so internalize them before editing anything.
 
 - **Supported versions.** GitBook accepts Swagger 2.0 and OpenAPI 3.0 specs. Some features need newer versions: webhooks require OpenAPI 3.1, and the official `parent` tag property requires OpenAPI 3.2+ (use `x-parent` on 3.0.x and 3.1.x). Always check the spec's `openapi:`/`swagger:` version before reaching for a version-gated feature.
 - **The "Test it" runner is powered by Scalar.** It runs requests from the reader's browser unless you route them through GitBook's proxy.
-- **Three ways to add a spec:** upload a file, point at a hosted URL, or publish with the GitBook CLI. The source type changes how updates work (see below).
-- **URL specs auto-refresh every 6 hours.** File specs only change when re-uploaded or re-published.
+- **A spec's source is a file or a URL — and that's what determines updates, not which transport (MCP, API, CLI, or UI) you used to set it.** URL sources auto-refresh every 6 hours; file sources only change when re-uploaded or re-published.
 - **`x-*` extensions are namespaced and safe to keep in a shared spec.** Tools that do not understand a given extension ignore it, so a spec instrumented for GitBook still validates and works elsewhere.
 
 ## What are you trying to do?
@@ -57,21 +76,39 @@ Match the task to the right section. For the deeper reference material, two file
 
 ## Add or update a specification
 
-A spec must exist in the organization before any block or page can reference it.
+A spec must exist in the organization before any block or page can reference it. Adding and updating are the same underlying operation on every transport — pick whichever you have per "How you can talk to GitBook" above. Whichever you use, give the spec a name/slug up front: it's how you reference it later and how you tell multiple specs apart.
 
-**In the GitBook app:** open the **OpenAPI** section in the sidebar, click **Add specification**, give it a name (the name matters: it is how you reference the spec later and how you tell multiple specs apart), then choose to upload a file, enter a hosted URL, or publish via CLI.
+**GitBook MCP** — if connected, use its spec tool directly for creating or updating a spec from either a file or a URL; its schema covers both source types.
 
-**Updating depends on the source:**
-- URL source: GitBook checks every 6 hours automatically; click **Check for updates** to pull immediately. You can switch a File source to a URL source via **Edit** in the breadcrumb actions menu.
-- File source: click **Update** to upload a new version.
+**REST API** — create with a URL source:
 
-**With the CLI** (same command adds or updates; running it against a URL also forces a refresh):
+```bash
+curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "<spec-name>", "source": {"url": "<hosted-url>"}}' \
+  https://api.gitbook.com/v1/orgs/$ORG_ID/openapi
+```
+
+or from a file:
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  -F "slug=<spec-name>" \
+  -F "file=@./openapi.yaml" \
+  https://api.gitbook.com/v1/orgs/$ORG_ID/openapi
+```
+
+Update (replace) an existing spec the same way against `PATCH /v1/orgs/{orgId}/openapi/{specId}`.
+
+**GitBook CLI** — a thin wrapper over the same API call, useful in scripts and pipelines (same command adds or updates; running it against a URL also forces a refresh):
 
 ```bash
 gitbook openapi publish --spec <spec-name> --organization <organization-id> <path-or-url>
 ```
 
-Authenticate the CLI with a `GITBOOK_TOKEN` environment variable. For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/developers/integrations/reference
+Authenticates with the same `GITBOOK_TOKEN` environment variable. For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/developers/integrations/reference
+
+**GitBook app UI** — open the **OpenAPI** section in the sidebar, click **Add specification**, name it, then choose to upload a file or enter a hosted URL. Updating depends on the source: URL sources check every 6 hours automatically (click **Check for updates** to pull immediately; switch File to URL via **Edit** in the breadcrumb actions menu); file sources need **Update** to upload a new version.
 
 ## Insert an API reference
 
