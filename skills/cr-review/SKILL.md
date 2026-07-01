@@ -2,7 +2,7 @@
 name: cr-review
 metadata:
   version: "1.0"
-description: Review GitBook change requests from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — the direct-API twin of gitbook-cr-review and the reviewer-side companion to cr-create. Discover the change requests that need review (filter by who opened them, by space, or across a whole org), get the GitBook app link to review the diff, summarize what actually changed in a CR, then leave comments and optionally submit a review verdict (approve / request changes). Use this whenever someone wants to review docs change requests over the raw API (curl/HTTP), asks "what CRs are open / waiting on me / opened by <person>", "show me the change requests in <space>/<org>", "summarize what changed in this CR", "review this change request", "leave a comment on a CR", or "approve / request changes on a CR". For the authoring side (create a CR, push content, request reviewers, fix comments) over the API, use cr-create instead.
+description: Review GitBook change requests from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — the reviewer-side companion to cr-create (the authoring side over the same API). Discover the change requests that need review (filter by who opened them, by space, or across a whole org), get the GitBook app link to review the diff, summarize what actually changed in a CR, then leave comments and optionally submit a review verdict (approve / request changes). Use this whenever someone wants to review docs change requests over the raw API (curl/HTTP), asks "what CRs are open / waiting on me / opened by <person>", "show me the change requests in <space>/<org>", "summarize what changed in this CR", "review this change request", "leave a comment on a CR", or "approve / request changes on a CR". For the authoring side (create a CR, push content, request reviewers, fix comments) over the API, use cr-create instead.
 ---
 
 # GitBook CR Review (direct API)
@@ -10,8 +10,7 @@ description: Review GitBook change requests from Claude Code by calling the GitB
 Review documentation change requests against a GitBook space or org entirely through the
 **GitBook REST API** (`https://api.gitbook.com/v1`, hit with `curl`), so a reviewer never has
 to leave Claude Code to find what needs review, understand what changed, and respond. This is
-the **direct-API twin** of `gitbook-cr-review` (which uses the `gitbook2` CLI) and the
-**reviewer-side companion** to `cr-create` (the authoring side over the API). The
+the **reviewer-side companion** to `cr-create` (the authoring side over the same API). The
 reviewer flow is: **discover → understand → comment → decide**.
 
 Because every step is a real HTTP call, never fake an output: if a call returns nothing, says
@@ -230,8 +229,7 @@ gbapi POST "/spaces/<space>/change-requests/<cr>/reviews" --data '{"status":"cha
 
 - `curl` + `jq` and the `gbapi` helper perform every action in this skill. There is no helper
   script and no CLI.
-- See the sibling **`cr-create`** skill for the authoring side over the API (create a
+- See the companion **`cr-create`** skill for the authoring side over the API (create a
   CR, push content, request reviewers, notify Slack, fix/resolve comments) — its `.env` /
   `GITBOOK_TOKEN` setup, the human-vs-agent comment split, and the markdown round-trip caveat are
-  documented there in more depth. See **`gitbook-cr-review`** for the same reviewer flow driven by
-  the `gitbook2` CLI.
+  documented there in more depth.

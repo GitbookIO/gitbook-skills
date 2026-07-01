@@ -2,7 +2,7 @@
 name: cr-create
 metadata:
   version: "1.0"
-description: Drive an end-to-end GitBook docs review flow from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — create a change request, push content (update an existing page AND create a new page), request reviewers, notify Slack, then pull review comments back in, fix them, re-push, and resolve. This is the direct-API twin of gitbook-cr-create. Use this whenever someone wants to run a "docs review in GitBook" loop from the terminal/agent against the raw API (curl/HTTP), mentions creating a change request via the API, pushing content into a CR, "pull in the latest comments and fix them," requesting review on docs, or showing engineers how to collaborate on GitBook docs from Claude + Slack without a CLI. Also triggers for the Chime review-flow demo when the direct-API path is wanted.
+description: Drive an end-to-end GitBook docs review flow from Claude Code by calling the GitBook REST API directly with curl (no `gitbook2` CLI) — create a change request, push content (update an existing page AND create a new page), request reviewers, notify Slack, then pull review comments back in, fix them, re-push, and resolve. This is the authoring-side companion to cr-review (the reviewer side over the same API). Use this whenever someone wants to run a "docs review in GitBook" loop from the terminal/agent against the raw API (curl/HTTP), mentions creating a change request via the API, pushing content into a CR, "pull in the latest comments and fix them," requesting review on docs, or showing engineers how to collaborate on GitBook docs from Claude + Slack without a CLI. Also triggers for the Chime review-flow demo when the direct-API path is wanted.
 ---
 
 # GitBook Review Flow (direct API)
@@ -10,9 +10,8 @@ description: Drive an end-to-end GitBook docs review flow from Claude Code by ca
 Run a documentation review loop against a GitBook space entirely through the
 **GitBook REST API** (`https://api.gitbook.com/v1`, hit with `curl`), so an engineer
 never has to leave Claude Code (plus Slack) to propose docs changes and get them
-reviewed. This is the **direct-API twin** of `gitbook-cr-create`, which does the same
-things through the `gitbook2` CLI. Every action here is a plain HTTP call — there is no
-CLI and no helper script.
+reviewed. This is the authoring-side companion to `cr-review` (the reviewer side over the
+same API). Every action here is a plain HTTP call — there is no CLI and no helper script.
 
 The same actions serve three purposes with no separate code paths:
 - **CR-creation demo** — create a change request and push content (one existing page updated, one new page created).
@@ -270,7 +269,7 @@ The demo is these actions in sequence with narration — no demo-only logic.
 **Part 2 — notify + review loop:**
 5. `POST …/requested-reviewers` to assign reviewers.
 6. Slack notification *(gate)* — the message must link the CR, link this skill's repo
-   (`https://github.com/GitbookIO/review_flow_skill`), and include a paste-ready prompt for
+   (`https://github.com/GitbookIO/gitbook-skills`), and include a paste-ready prompt for
    addressing the comments in Claude Code. Frame this explicitly as the stopgap.
 7. Comments come in. Pull them with `…/comments?format=markdown&status=all` and handle as
    **two operations** by classifying on `postedBy.id` (see "Two operations").
@@ -344,5 +343,4 @@ remove step 6.
 - `references/gitbook-review.config.json` — reference values (spaceId, demo page IDs); non-secret;
   gitignored. Nothing reads it automatically — pass IDs into the calls.
 - `.env` (repo root) — secrets: `GITBOOK_TOKEN` and `SLACK_WEBHOOK_URL`; gitignored.
-- See the sibling **`gitbook-cr-create`** skill for the same flow driven by the `gitbook2` CLI,
-  and **`cr-review`** for the reviewer side over the direct API.
+- See the companion **`cr-review`** skill for the reviewer side over the same API.
