@@ -106,7 +106,7 @@ Update (replace) an existing spec the same way against `PATCH /v1/orgs/{orgId}/o
 gitbook openapi publish --spec <spec-name> --organization <organization-id> <path-or-url>
 ```
 
-Authenticates with the same `GITBOOK_TOKEN` environment variable. For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/developers/integrations/reference
+For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/developers/integrations/reference
 
 **GitBook app UI** — open the **OpenAPI** section in the sidebar, click **Add specification**, name it, then choose to upload a file or enter a hosted URL. Updating depends on the source: URL sources check every 6 hours automatically (click **Check for updates** to pull immediately; switch File to URL via **Edit** in the breadcrumb actions menu); file sources need **Update** to upload a new version.
 
