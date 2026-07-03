@@ -24,6 +24,22 @@ You'll also see a fully-qualified form in some content: `https://app.gitbook.com
 - **Across spaces** — use the `app.gitbook.com/s/<spaceId>/...` form. Relative paths can't cross space boundaries.
 - **External URLs** — just the URL: `[Status](https://status.example.com)`.
 
+## Linking to a space that already exists
+
+The sentinel workflow below is for scaffolding — spaces that don't exist yet, so there's no ID to link to. If the target space already exists (you're adding a link from one already-published space into another), skip the sentinel step and just fetch the ID and path directly:
+
+```bash
+# 1. List spaces in the org, find the target by title
+curl -s -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  "https://api.gitbook.com/v1/orgs/$ORG_ID/spaces" | jq '.items[] | {id, title}'
+
+# 2. List the target space's pages, find the target page's path
+curl -s -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  "https://api.gitbook.com/v1/spaces/$SPACE_ID/content/pages" | jq '.pages[] | {title, path}'
+```
+
+Each page object's `path` field (not its `id`) is what goes after the space ID in the URL — it's the same path segment shown in the page's `urls.app` field. Compose: `https://app.gitbook.com/s/<spaceId>/<path>`.
+
 ## The sentinel-and-resolve workflow
 
 ### Step 1 — agree on space keys during the structure plan
@@ -176,8 +192,13 @@ for md in Path(".").rglob("*.md"):
 
 The script is idempotent — running it twice doesn't break anything, since after the first run there are no XSPACE_ placeholders left to substitute.
 
+## Pages that move
+
+When a page is moved or renamed, GitBook automatically creates a redirect from its old path, so links pointing at that path — relative or cross-space — keep resolving without any edits. Don't rewrite inbound links just because a page moved. For redirects outside that automatic coverage (e.g. restructuring done outside the GitBook UI), use `redirects:` in `.gitbook.yaml` (space-level) or the site redirects API (site-level, `POST/PUT /orgs/{orgId}/sites/{siteId}/redirects`).
+
 ## Common mistakes
 
+- **Don't use `/spaces/<spaceId>/pages/<pageId>`.** This is not a valid GitBook link form, despite sometimes being suggested — cross-space links use the page's *path*, not its page ID, and the URL is always `https://app.gitbook.com/s/<spaceId>/<path>`.
 - **Don't try to guess space IDs ahead of time.** They come from the API response after `POST /spaces`. Even a stable-looking ID format is opaque.
 - **Don't use `<published-domain>/...` URLs across spaces** unless you've actually configured that domain. Sites without a custom domain live at `<orghostname>.gitbook.io/<sitehostname>/<sectionpath>/<spacepath>/<page>`, and that URL changes if anyone moves the site or section.
 - **Don't strip the sentinel prefix from `XSPACE_<KEY>`.** Keep the `XSPACE_` prefix in case some future content has unrelated IDs that happen to match a key like `GUIDES`.
@@ -186,6 +207,6 @@ The script is idempotent — running it twice doesn't break anything, since afte
 
 ## A note on what `write-docs` should know
 
-The companion skill `write-docs` covers the markdown syntax for links in general. It should be aware that **cross-space links require resolved space IDs and won't work as relative paths**, and should produce them using the sentinel pattern when generating content for a multi-space site. The actual sentinel→ID resolution belongs to this skill (`configure-site`), since this skill is the one with API access to fetch the IDs after space creation.
+The companion skill `write-docs` covers the markdown syntax for links in general. It should be aware that **cross-space links require resolved space IDs and won't work as relative paths**, and should produce them using the sentinel pattern when generating content for a multi-space site being scaffolded. The actual sentinel→ID resolution belongs to this skill (`configure-site`), since this skill is the one orchestrating space creation and has the IDs as soon as they exist.
 
-If `write-docs` is being used standalone (without `configure-site` orchestrating), the user is responsible for replacing the sentinels themselves once they know the space IDs.
+If `write-docs` is being used standalone (without `configure-site` orchestrating) and the target space already exists, it doesn't need a sentinel at all — it can fetch the ID and path directly via the API (`GET /orgs/{orgId}/spaces`, `GET /spaces/{spaceId}/content/pages`), same as the "Linking to a space that already exists" section above. Sentinels are only needed when the target space doesn't exist yet.

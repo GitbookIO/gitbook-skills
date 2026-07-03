@@ -77,8 +77,9 @@ layout:
 **Links:**
 
 * External: `[text](https://example.com)`
-* Internal (same space): `[text](page.md)`, `[text](../folder/page.md)`
-* Cross-space: use `https://app.gitbook.com/s/<spaceId>/<path>` — relative paths don't cross space boundaries. Use `XSPACE_<KEY>` sentinels during scaffolding; `configure-site` resolves them after creation.
+* Relative (same space): `[text](page.md)`, `[text](../folder/page.md)`
+* Cross-space (different space): `[text](https://app.gitbook.com/s/<spaceId>/<path>)` — relative paths never cross space boundaries, and this is the only correct URL form (not `/spaces/<id>/pages/<id>`). Get `<spaceId>` from `GET /orgs/{orgId}/spaces` and `<path>` from a page's `path` field in `GET /spaces/{spaceId}/content/pages`. Scaffolding a new site where the target space doesn't exist yet? Use `XSPACE_<KEY>` sentinels; `configure-site` resolves them after creation. Full examples: `references/markdown.md`.
+* Moved/renamed pages keep working — GitBook auto-creates a redirect from the old path.
 
 **Key reminders:**
 
@@ -123,8 +124,9 @@ layout:
 **Cross-space links:**
 
 * Don't use relative paths to link to a page in a different space — they won't resolve.
-* Use `https://app.gitbook.com/s/<spaceId>/<path>` instead.
-* Use `XSPACE_<KEY>` sentinels when space IDs aren't known yet.
+* Don't use `/spaces/<spaceId>/pages/<pageId>` — that's not a valid GitBook link form.
+* Use `https://app.gitbook.com/s/<spaceId>/<path>` instead, where `<path>` is the target page's `path` field (from `GET /spaces/{spaceId}/content/pages`), not its page ID.
+* Use `XSPACE_<KEY>` sentinels when space IDs aren't known yet (new space, not yet created).
 
 **File organization:**
 
