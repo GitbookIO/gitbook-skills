@@ -154,6 +154,18 @@ When GitBook is synced with Git, changes flow in both directions — Git changes
 
 **Best practices:** make structural changes via SUMMARY.md in Git; use branch-based workflows for significant updates; review auto-generated commits from GitBook.
 
+#### Choosing Git Sync vs. a change-request content push
+
+When a space has Git Sync configured and you have (or can get) a local checkout of the synced repo, **prefer editing the files directly and committing/pushing** — Git Sync propagates the change to GitBook. This holds even in an MCP session where a change-request content-push tool (e.g. `updateChangeRequestContent`) is available and connected: the tool being one call away isn't a reason to bypass Git as the source of truth. An agent that discovers it *can* push straight into a CR should still check whether Git Sync is set up and reachable before doing so.
+
+Reach for the change-request content-push path instead (MCP's `updateChangeRequestContent` or similar, or the REST `POST .../change-requests/<cr>/content` endpoint — see the `cr-create` skill) when:
+
+- the space has no Git Sync configured yet (e.g. a brand-new space still mid-setup),
+- there's no local Git checkout available in the current environment (no filesystem access to the synced repo), or
+- the change is small and targeted (a typo, one paragraph, one field) — opening a CR is proportionate, and a full clone/commit/push cycle isn't worth it for that.
+
+For anything larger — a new page tree, a multi-page rewrite, a migration — prefer Git Sync, even if that means pausing to confirm the repo is cloned locally first. Don't default to the change-request tool just because it's the first one that worked.
+
 ### Reference files
 
 Load these on demand when the task requires deeper detail:
