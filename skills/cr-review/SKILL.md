@@ -56,6 +56,7 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 | Discover CRs in a **single space** | `GET /spaces/<space>/change-requests?[status=][&creator=][&requestedReviewer=]` | |
 | CR detail | `GET /spaces/<space>/change-requests/<cr>` | `subject`, `status`, `createdBy`, `comments`, `urls.app` |
 | Link to review the diff | use `.urls.app` straight from the list/get output — **never construct a URL** | |
+| Link to the rendered preview | `GET /spaces/<space>` → `.organization`, then find the site behind the space and read its `urls.preview` | `urls.app` is only the diff view — see "Surfacing the preview link" in the `cr-create` skill for the full resolution steps; reviewers deciding approve/request-changes usually want to see the rendered result, not just the diff |
 | Structural change summary | `GET /spaces/<space>/change-requests/<cr>/changes` | entries like `page_created`/`page_edited` with `page.title`, `page.path` |
 | Per-page prose diff | CR side `GET /spaces/<space>/change-requests/<cr>/content/page/<pageId>?format=markdown` vs base `GET /spaces/<space>/content/page/<pageId>?format=markdown`, diffed client-side | |
 | Existing comments (context) | `GET /spaces/<space>/change-requests/<cr>/comments?format=markdown&status=all` | bodies at `body.markdown`; poster at `postedBy.id`; classify human vs `gitbook:agent` |
@@ -100,6 +101,9 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 - **Never invent IDs, URLs, CR subjects, change summaries, comment text, or "success."** Run the
   call and report exactly what the API returns. If `gbapi` errors, surface the error body. The
   diff link must be the API's `urls.app`, not a hand-built URL.
+- **Surface the site preview link alongside the diff link**, not just `urls.app` — it lives on
+  the `Site` object (`urls.preview`), not on the change request, so it's easy to forget it
+  exists. See "Summarizing a CR."
 - **Discovery lists paginate — never conclude "not found" from the first page.** `GET /orgs`,
   `GET …/spaces`, and the CR-list calls return a capped page with no total / "more" indicator.
   Raise `limit` (and/or page with `page=`) and search the full set before telling the user
@@ -201,7 +205,11 @@ gbapi POST "/spaces/<space>/change-requests/<cr>/reviews" --data '{"status":"cha
    block) — don't report such re-escaping as a real authored change; eyeball multi-line
    integration blocks before flagging them.
 3. **Always include the diff link** — the CR's `urls.app` — so the user can open the visual diff
-   in GitBook (mention the split-diff view if the org has it enabled).
+   in GitBook (mention the split-diff view if the org has it enabled). **Also resolve and include
+   the site preview link** (`urls.preview` on the `Site` behind this space — see `cr-create`'s
+   "Surfacing the preview link") when one exists, so the user can see the rendered docs, not just
+   the diff. If the space isn't attached to a published site, say so rather than silently
+   omitting it.
 4. **Fold in existing comments** as context: list them and note any **GitBook Agent** auto-review
    comments (`postedBy.id == "gitbook:agent"`, advisory) separately from human comments.
 

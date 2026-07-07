@@ -166,6 +166,8 @@ Reach for the change-request content-push path instead (MCP's `updateChangeReque
 
 For anything larger — a new page tree, a multi-page rewrite, a migration — prefer Git Sync, even if that means pausing to confirm the repo is cloned locally first. Don't default to the change-request tool just because it's the first one that worked.
 
+Whichever path pushes the change, surface the CR's rendered site preview link (not just the editor/diff link) before wrapping up — see the `cr-create` skill's "Surfacing the preview link." It isn't part of the change-request response itself, so it's easy to forget.
+
 ### Reference files
 
 Load these on demand when the task requires deeper detail:

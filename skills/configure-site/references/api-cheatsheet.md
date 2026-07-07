@@ -42,7 +42,7 @@ Request body fields:
 - `visibility` — `public | unlisted | share-link | visitor-auth`. Defaults to `public`.
 - `spaces` — optional array of existing space IDs to link immediately. Omit when creating a fresh site without pre-existing spaces.
 
-Response is the full `Site` object. Save `id` for subsequent calls; the `urls.app` is the dashboard URL the user can open.
+Response is the full `Site` object. Save `id` for subsequent calls; the `urls.app` is the dashboard URL the user can open. The response also carries `urls.preview` (a rendered preview of the site's draft/in-progress content) and, once published, `urls.published` — worth surfacing alongside `urls.app` when the user asks "what will this look like." This is also the field that makes change-request preview links possible; see the `cr-create` skill's "Surfacing the preview link" for the full space→site resolution when you only have a space ID.
 
 ### List sites in an org
 
