@@ -68,6 +68,14 @@ Don't start scaffolding until these are known. If something is missing, ask once
 - **Git remote preference** — GitHub, GitLab, or local-only. Check whether `gh` or `glab` are installed *before* asking. If neither tool is available, **say so explicitly** and offer two paths: (1) commit locally and put the "create the remote and push" step at the top of the user's handoff, or (2) ask the user to install the tool. Don't quietly default to local-only without telling them — they'll have a repo with no remote and no instructions.
 - **Site shape** — single space or multi-space. Multi-space sites use **sections** to group spaces in the navigation; this is the right choice when content has clearly distinct audiences (e.g. user docs + API reference + changelog). Use site-spaces directly only for translation variants — see `references/api-cheatsheet.md`.
 
+## Verify the content source before building
+
+Once the user names a content seed — a repo, folder, or docs-site URL — verify you can actually read it **before** designing structure or scaffolding anything:
+
+1. **Resolve and echo the source.** State exactly what you're about to read (repo URL and branch, folder path, or site URL) and show the user its top-level contents — a short file or page list — so they can confirm it's the right one.
+2. **If you can't access it, stop and say so.** Git hosts return **404 for private repositories** — indistinguishable from "repository doesn't exist." Treat any 404 or clone failure on a user-named repo as *possibly private*: tell the user what failed, and ask them to either make the content reachable (local clone, archive, authenticated `gh`/`glab`, public mirror) or correct the URL. Check whether an authenticated `gh`/`glab` CLI is available before declaring the repo unreachable.
+3. **Never substitute a source.** Do not search for, guess, or fall back to a similarly-named repository or site — even one that looks identical. Building a docs site from the wrong source is far worse than pausing to ask. Any change of source requires the user's explicit sign-off.
+
 ## Confirmation gates for state-changing operations
 
 Site creation, space creation, adding sections, attaching site-spaces, and customization changes all create or modify objects that are **immediately visible to everyone in the org** and that take real effort to clean up. Treat them as heavy operations.
@@ -445,6 +453,7 @@ This is the part that has to feel polished. Once the repo is pushed and the site
 ## Common mistakes to avoid
 
 - **Don't put the PAT in any file Claude writes.** Always read it from the environment.
+- **Don't silently swap the content source.** If the repo or folder the user named can't be read (remember: private repos return 404, same as nonexistent ones), stop and ask — never proceed with a lookalike public repo. See "Verify the content source before building."
 - **Don't try to set up Git Sync programmatically.** It's UI-only regardless of transport — always route through the UI handoff.
 - **Don't paste an entire customization payload from memory.** Fetch the current state, modify it, then write the full result back. Schemas evolve and you'll write fewer bugs this way.
 - **Don't create a space for every section of content.** A space is a heavy unit (it has its own URL slug, sync, settings). Pages and folders within a space are the right tool for sub-grouping.
