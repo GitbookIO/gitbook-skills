@@ -8,5 +8,11 @@
   },
   "homepage": "https://gitbook.com",
   "repository": "https://github.com/GitbookIO/gitbook-skills",
-  "license": "MIT"
+  "license": "MIT",
+  "mcpServers": {
+    "gitbook": {
+      "type": "http",
+      "url": "https://mcp.gitbook.com/mcp"
+    }
+  }
 }
