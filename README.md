@@ -10,6 +10,12 @@ npx skills add GitbookIO/gitbook-skills
 
 Then select the ones you wish to install.
 
+Running non-interactively (e.g. an AI agent installing on your behalf)? Use the `-y` flags to skip the interactive picker and install all skills — without them the installer hangs waiting for input:
+
+```
+npx -y skills add GitbookIO/gitbook-skills -y
+```
+
 ## Available Skills
 
 | Skill | Description |
