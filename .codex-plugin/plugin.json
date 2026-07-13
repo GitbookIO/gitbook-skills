@@ -15,6 +15,7 @@
     "markdown"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "GitBook",
     "shortDescription": "Build and edit GitBook docs in Codex.",
