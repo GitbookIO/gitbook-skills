@@ -1,0 +1,23 @@
+{
+  "skill_name": "build-integration",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build a GitBook integration that adds a custom 'API Status' block to the editor. When inserted, the block should show the current status of our API (fetched from https://status.acme.dev/api/v2/status.json) and have a Refresh button. Set up the whole project for me and explain how I develop and test it locally.",
+      "expected_output": "A complete integration project: gitbook-manifest.yaml with the block declared and matching componentId, entry file with createIntegration/createComponent, a refresh action that fetches the status endpoint, and correct dev-loop instructions (publish first, install, then gitbook dev; don't visit the dev server URL).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our GitBook integration needs to connect to Linear. When someone installs it, they should click an Authorize button to OAuth into Linear, and then pick a default team from a dropdown that's populated from Linear's API. How do I set this up? Show me the manifest config and the code.",
+      "expected_output": "Manifest configurations with a button-type property (callback_url) and a string property with completion_url; createOAuthHandler wired to the callback route in fetch; client id/secret via manifest secrets with ${{ env.X }} indirection and dotenv-cli, never literal values.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "When someone pastes a link like https://app.acme.dev/dashboards/1234 into our GitBook docs, I want it to turn into an embedded preview of that dashboard instead of a plain link. Can you build this?",
+      "expected_output": "An unfurl integration: manifest block with urlUnfurl patterns for app.acme.dev, component handling the @link.unfurl action by storing the URL in props, render showing a webframe (with aspectRatio), and a note that iFramely handles most links automatically.",
+      "files": []
+    }
+  ]
+}
