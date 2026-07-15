@@ -1,6 +1,10 @@
-# GitBook Skills
+<p align="center">
+  <img src="assets/gitbook_icon_dark.svg" alt="GitBook" width="48" />
+</p>
 
-A collection of skills for AI coding agents following the [Agent Skills](https://agentskills.io) format. Available as a plugin for Claude Code, Cursor, OpenAI Codex, and Grok.
+<h1 align="center">GitBook Skills</h1>
+
+<p align="center">A collection of skills for AI coding agents following the <a href="https://agentskills.io">Agent Skills</a> format. Available as a plugin for Claude Code, Cursor, OpenAI Codex, and Grok.</p>
 
 ## Install
 
