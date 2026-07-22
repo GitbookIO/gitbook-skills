@@ -58,7 +58,7 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 | Link to review the diff | use `.urls.app` straight from the list/get output — **never construct a URL** | |
 | Link to the rendered preview | `GET /spaces/<space>` → `.organization`, then find the site behind the space and read its `urls.preview` | `urls.app` is only the diff view — see "Surfacing the preview link" in the `cr-create` skill for the full resolution steps; reviewers deciding approve/request-changes usually want to see the rendered result, not just the diff |
 | Structural change summary | `GET /spaces/<space>/change-requests/<cr>/changes` | entries like `page_created`/`page_edited` with `page.title`, `page.path` |
-| Per-page prose diff | CR side `GET /spaces/<space>/change-requests/<cr>/content/page/<pageId>?format=markdown` vs base `GET /spaces/<space>/content/page/<pageId>?format=markdown`, diffed client-side | |
+| Per-page prose diff | CR side `GET /spaces/<space>/change-requests/<cr>/content/page/<pageId>?format=markdown` vs base `GET /spaces/<space>/content/page/<pageId>?format=markdown`, diffed client-side | input to a prose summary only — never paste this as a line-by-line diff; point the user at `urls.app` for the actual diff |
 | Existing comments (context) | `GET /spaces/<space>/change-requests/<cr>/comments?format=markdown&status=all` | bodies at `body.markdown`; poster at `postedBy.id`; classify human vs `gitbook:agent` |
 | **Leave a comment** *(GATE)* | `POST /spaces/<space>/change-requests/<cr>/comments` body `{"body":{"markdown":"…"}}` (opt. `"page"`/`"node"`) | posts publicly, notifies the author |
 | **Submit a verdict** *(GATE)* | `POST /spaces/<space>/change-requests/<cr>/reviews` body `{"status":"approved"\|"changes-requested"}` (opt. `"comment":{"markdown":"…"}`) | records a real review |
@@ -101,6 +101,11 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 - **Never invent IDs, URLs, CR subjects, change summaries, comment text, or "success."** Run the
   call and report exactly what the API returns. If `gbapi` errors, surface the error body. The
   diff link must be the API's `urls.app`, not a hand-built URL.
+- **Always prefer GitBook's own diff over a hand-built one.** `urls.app` opens the diff GitBook
+  itself renders (word-level, syntax-aware, split-view where the org has it enabled) — treat it
+  as the diff of record for the CR. The per-page markdown fetch-and-compare in "Summarizing a
+  CR" exists only to *inform a prose summary* of what changed — never paste a raw unified /
+  line-by-line diff into chat as a substitute for it.
 - **Surface the site preview link alongside the diff link**, not just `urls.app` — it lives on
   the `Site` object (`urls.preview`), not on the change request, so it's easy to forget it
   exists. See "Summarizing a CR."
@@ -200,16 +205,20 @@ gbapi POST "/spaces/<space>/change-requests/<cr>/reviews" --data '{"status":"cha
    overview.
 2. **Prose-level (when the user wants detail):** for each edited page, fetch the CR-side markdown
    (`…/change-requests/<cr>/content/page/<pageId>?format=markdown`) and the base-side markdown
-   (`…/spaces/<space>/content/page/<pageId>?format=markdown`) and diff them client-side. **Caveat:**
-   a markdown round-trip can re-escape multi-line integration blocks (e.g. a `{% @mermaid/diagram %}`
-   block) — don't report such re-escaping as a real authored change; eyeball multi-line
-   integration blocks before flagging them.
-3. **Always include the diff link** — the CR's `urls.app` — so the user can open the visual diff
-   in GitBook (mention the split-diff view if the org has it enabled). **Also resolve and include
-   the site preview link** (`urls.preview` on the `Site` behind this space — see `cr-create`'s
-   "Surfacing the preview link") when one exists, so the user can see the rendered docs, not just
-   the diff. If the space isn't attached to a published site, say so rather than silently
-   omitting it.
+   (`…/spaces/<space>/content/page/<pageId>?format=markdown`) and diff them client-side **as
+   input to a prose summary, not as output.** Use the comparison to describe *what* changed
+   ("rewrote the intro, added a troubleshooting section") — don't paste the raw unified /
+   line-by-line diff into chat; GitBook's own diff (`urls.app`, see step 3) is the diff of record
+   and is always the better way to actually *see* the change. **Caveat:** a markdown round-trip
+   can re-escape multi-line integration blocks (e.g. a `{% @mermaid/diagram %}` block) — don't
+   report such re-escaping as a real authored change; eyeball multi-line integration blocks
+   before flagging them.
+3. **Always lead with the diff link** — the CR's `urls.app` — as the place to actually see the
+   diff (mention the split-diff view if the org has it enabled); the prose summary from step 2
+   supplements that link, it doesn't replace it. **Also resolve and include the site preview
+   link** (`urls.preview` on the `Site` behind this space — see `cr-create`'s "Surfacing the
+   preview link") when one exists, so the user can see the rendered docs, not just the diff. If
+   the space isn't attached to a published site, say so rather than silently omitting it.
 4. **Fold in existing comments** as context: list them and note any **GitBook Agent** auto-review
    comments (`postedBy.id == "gitbook:agent"`, advisory) separately from human comments.
 
