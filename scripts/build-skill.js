@@ -1,11 +1,17 @@
 #!/usr/bin/env node
-// Combines the six skills/*/SKILL.md files into one self-contained skill
-// document, published at gitbook.com/docs/skill.md via public-docs.
+// Builds a single, spec-compliant `gitbook` skill from the six
+// skills/*/SKILL.md files, published at gitbook.com/docs/skill.md via
+// public-docs.
 //
-// Deep reference material (skills/*/references/**) is intentionally left
-// out — it's ~15x the size of the SKILL.md bodies combined and would bury
-// the point of a single fetchable file. Point readers back to the repo
-// instead.
+// Per the Agent Skills spec (https://agentskills.io/specification):
+//   - frontmatter `description` must be <= 1024 characters
+//   - SKILL.md should stay under ~500 lines / ~5000 tokens; detailed
+//     instructions belong in files loaded on demand, not inlined
+//
+// So this does NOT inline the six skill bodies. It's a short router: each
+// skill's own frontmatter description (already written for keyword-based
+// routing) plus a link to its full SKILL.md on GitHub, which an agent
+// fetches only once it's decided that skill is relevant.
 
 const fs = require("fs");
 const path = require("path");
@@ -14,6 +20,8 @@ const ROOT = path.resolve(__dirname, "..");
 const SKILLS_DIR = path.join(ROOT, "skills");
 const OUT_PATH = path.join(ROOT, "dist", "skill.md");
 const REPO_URL = "https://github.com/GitbookIO/gitbook-skills";
+const MAX_DESCRIPTION_LENGTH = 1024;
+const RECOMMENDED_MAX_LINES = 500;
 
 // Order matches the README's "Available Skills" table.
 const SKILLS = [
@@ -26,14 +34,13 @@ const SKILLS = [
 ];
 
 const UMBRELLA_DESCRIPTION =
-  "Comprehensive skill for GitBook documentation and platform work: author and format GitBook-flavored " +
-  "Markdown pages, README.md/SUMMARY.md, and blocks like hints, tabs, and steppers; design, scaffold, and " +
-  "configure entire documentation sites end-to-end via the GitBook REST API and Git Sync; generate and " +
-  "troubleshoot OpenAPI/Swagger API reference documentation; create, push content to, and manage GitBook " +
-  "change requests over the REST API, including requesting and giving reviews; and build GitBook " +
-  "integrations — custom blocks, ContentKit UI, events, and OAuth. Use this skill whenever a task involves " +
-  "GitBook: writing or editing docs, restructuring or creating a site, working with .gitbook.yaml/SUMMARY.md, " +
-  "OpenAPI references, change request review flows, or building an app/integration for GitBook.";
+  "Work with GitBook end-to-end: author and format GitBook-flavored Markdown pages and blocks " +
+  "(hints, tabs, steppers); design, scaffold, and configure documentation sites via the GitBook " +
+  "REST API and Git Sync; generate and troubleshoot OpenAPI/Swagger API reference docs; create, " +
+  "push content to, and manage change requests and reviews over the REST API; and build GitBook " +
+  "integrations (custom blocks, ContentKit UI, events, OAuth). Use whenever a task involves " +
+  "GitBook: writing or editing docs, SUMMARY.md/.gitbook.yaml, site structure, OpenAPI " +
+  "references, change-request review flows, or building a GitBook app/integration.";
 
 function parseTopLevelYaml(text) {
   const lines = text.split("\n");
@@ -67,52 +74,6 @@ function parseTopLevelYaml(text) {
   return result;
 }
 
-// Demotes headings by one level (so sections nest under our own H2), and
-// drops each skill's own H1 title since we supply a section heading instead.
-function processBody(body) {
-  const lines = body.split("\n");
-  let inFence = false;
-  let sawContent = false;
-  const out = [];
-
-  for (const line of lines) {
-    if (/^\s*(`{3,}|~{3,})/.test(line)) {
-      inFence = !inFence;
-      out.push(line);
-      sawContent = true;
-      continue;
-    }
-
-    if (!inFence) {
-      const h = line.match(/^(#{1,6})\s+(.*)$/);
-      if (h) {
-        if (!sawContent && h[1].length === 1) {
-          sawContent = true;
-          continue; // drop the doc's own top-level title
-        }
-        sawContent = true;
-        const newLevel = Math.min(h[1].length + 1, 6);
-        out.push("#".repeat(newLevel) + " " + h[2]);
-        continue;
-      }
-    }
-
-    if (line.trim() !== "") sawContent = true;
-    out.push(line);
-  }
-
-  return out.join("\n").replace(/^\n+/, "").trim();
-}
-
-function slugify(title) {
-  return title
-    .toLowerCase()
-    .replace(/&/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
-}
-
 function wrapFolded(text, indent = "  ", width = 100) {
   const words = text.split(/\s+/);
   const lines = [];
@@ -138,20 +99,24 @@ function parseSkillFile(dir) {
   return {
     name: frontmatter.name || dir,
     description: frontmatter.description || "",
-    body: processBody(match[2]),
   };
 }
 
 function main() {
+  if (UMBRELLA_DESCRIPTION.length > MAX_DESCRIPTION_LENGTH) {
+    throw new Error(
+      `Combined description is ${UMBRELLA_DESCRIPTION.length} chars, over the ${MAX_DESCRIPTION_LENGTH}-char spec limit`
+    );
+  }
+
   const parsed = SKILLS.map((s) => ({ ...s, ...parseSkillFile(s.dir) }));
 
-  const toc = parsed
-    .map((s) => `- [${s.title}](#${slugify(s.title)})`)
-    .join("\n");
-
-  const sections = parsed
-    .map((s) => `## ${s.title}\n\n> ${s.description}\n\n${s.body}`)
-    .join("\n\n---\n\n");
+  const entries = parsed
+    .map((s) => {
+      const skillUrl = `${REPO_URL}/blob/main/skills/${s.dir}/SKILL.md`;
+      return `### ${s.title}\n\n${s.description}\n\nFull instructions: [skills/${s.dir}/SKILL.md](${skillUrl})`;
+    })
+    .join("\n\n");
 
   const out = `---
 name: gitbook
@@ -165,20 +130,21 @@ This page is generated automatically from [GitbookIO/gitbook-skills](${REPO_URL}
 
 # GitBook
 
-This is GitBook's complete skill for working with GitBook as an AI coding agent, combining the six skills from [gitbook-skills](${REPO_URL}) into one document. Jump to the section that matches your task. Each skill also has deeper reference material (full block syntax, API payloads, troubleshooting guides) in the [gitbook-skills repo](${REPO_URL}) under \`skills/<name>/references/\` if you need more than what's here.
+GitBook's skill for AI coding agents, covering six areas of GitBook work. Each section below is one of the six skills in [gitbook-skills](${REPO_URL}) — read its description to see if it matches your task, then fetch its linked \`SKILL.md\` for full instructions before acting. Each skill's \`SKILL.md\` links out to further reference material (full block syntax, API payloads, troubleshooting) under \`skills/<name>/references/\` when you need more depth than the top-level instructions.
 
-## Contents
-
-${toc}
-
----
-
-${sections}
+${entries}
 `;
+
+  const lineCount = out.split("\n").length;
+  if (lineCount > RECOMMENDED_MAX_LINES) {
+    console.warn(
+      `Warning: generated skill.md is ${lineCount} lines, over the spec's recommended ${RECOMMENDED_MAX_LINES}-line ceiling`
+    );
+  }
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, out);
-  console.log(`Wrote ${OUT_PATH} (${out.length} bytes)`);
+  console.log(`Wrote ${OUT_PATH} (${out.length} bytes, ${lineCount} lines)`);
 }
 
 main();
