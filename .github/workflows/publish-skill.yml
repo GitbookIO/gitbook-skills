@@ -1,0 +1,73 @@
+name: Publish combined skill to public-docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "scripts/build-skill.js"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gitbook-skills
+        uses: actions/checkout@v4
+
+      - name: Build combined skill.md
+        run: node scripts/build-skill.js
+
+      - name: Checkout public-docs
+        uses: actions/checkout@v4
+        with:
+          repository: GitbookIO/public-docs
+          token: ${{ secrets.PUBLIC_DOCS_PAT }}
+          path: public-docs
+          fetch-depth: 0
+
+      - name: Sync branch and apply changes
+        id: sync
+        working-directory: public-docs
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "gitbook-skills-bot"
+          git config user.email "actions@github.com"
+          git fetch origin main
+          git checkout -B sync/gitbook-skill origin/main
+
+          cp ../dist/skill.md ./skill.md
+          node ../scripts/update-summary.js
+
+          if git diff --quiet -- skill.md SUMMARY.md; then
+            echo "No changes to publish"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git add skill.md SUMMARY.md
+          git commit -m "Sync gitbook skill.md from gitbook-skills@${GITHUB_SHA:0:7}"
+          git push --force origin sync/gitbook-skill
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR if needed
+        if: steps.sync.outputs.changed == 'true'
+        working-directory: public-docs
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_DOCS_PAT }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if ! gh pr view sync/gitbook-skill --repo GitbookIO/public-docs >/dev/null 2>&1; then
+            gh pr create --repo GitbookIO/public-docs \
+              --head sync/gitbook-skill \
+              --base main \
+              --title "Sync gitbook skill.md from gitbook-skills" \
+              --body "Auto-generated from https://github.com/GitbookIO/gitbook-skills/commit/${GITHUB_SHA}. This PR is kept up to date automatically — new merges to gitbook-skills main will overwrite it until it's merged."
+          else
+            echo "PR already open on sync/gitbook-skill, updated in place by the force-push above"
+          fi
