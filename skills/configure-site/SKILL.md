@@ -99,6 +99,15 @@ When the user has already confirmed a multi-step plan in the structure-design st
 
 For read-only operations (fetching or listing), no confirmation is needed.
 
+## After a change-request push: two links are mandatory
+
+Whenever this skill (or `write-docs`, which it delegates page authoring to) pushes content through a change request — via MCP's `updateChangeRequestContent`/`create_change_request`/`submit_or_merge_change_request` curated tools, `invoke_operation`, or the REST equivalents — the edit is **not finished** until both of the following have been reported back to the user, every time:
+
+1. **The change request's diff/editor link** (`urls.app`) — the link to review the change in the GitBook app.
+2. **The site preview link** (`urls.preview`) — the rendered docs with the change applied. This lives on the **Site** object, not the change-request object, so it takes a separate lookup to find. It is easy to forget precisely because nothing in the CR-creation or content-push response points you at it.
+
+This is a hard rule, on the same footing as the confirmation gates above — not a nicety to add if there's time. See `write-docs`'s "Two links are mandatory whenever a change request is involved" and the `cr-create` skill's "Surfacing the preview link" for the exact resolution steps (MCP: `getSpaceById` → find the site via `list_sites`/`get_site_structure` or each site's site-spaces → `getSiteById` for `.urls.preview`; REST: the equivalent chained `GET` calls). If the space isn't attached to a published site, say so plainly rather than only giving the diff link with no explanation.
+
 ## Designing the site structure
 
 Before writing any files or creating anything in GitBook, decide on the structure and run it past the user. A weak structure is the single biggest reason docs sites fail to land.
@@ -459,6 +468,7 @@ This is the part that has to feel polished. Once the repo is pushed and the site
 - **Don't create a space for every section of content.** A space is a heavy unit (it has its own URL slug, sync, settings). Pages and folders within a space are the right tool for sub-grouping.
 - **Don't skip the structure-plan-and-confirm step**, even when the user is in a hurry. Restructuring a published site is painful.
 - **Don't over-format the SUMMARY.md.** GitBook's parser is strict about it. Defer to the rules in `write-docs`.
+- **Don't finish a change-request edit without both links.** See "After a change-request push: two links are mandatory" — the CR diff link alone is an incomplete answer.
 
 ## Reference files
 
