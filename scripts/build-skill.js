@@ -1,25 +1,35 @@
 #!/usr/bin/env node
-// Builds a single, spec-compliant `gitbook` skill from the six
-// skills/*/SKILL.md files, published at gitbook.com/docs/skill.md via
-// public-docs.
+// Builds the "gitbook" skill for publishing into public-docs:
+//   - dist/skill.md          a short router (<500 lines)
+//   - dist/skill/<name>.md   one page per skill, mirrored verbatim from
+//                            skills/<name>/SKILL.md
+//   - dist/skill-manifest.json  {dir, title}[] used by update-summary.js
+//
+// Everything the router links to lives on the same origin (gitbook.com)
+// as the router itself — no dependency on an agent being willing or able
+// to fetch a second domain (github.com) to get full instructions.
 //
 // Per the Agent Skills spec (https://agentskills.io/specification):
 //   - frontmatter `description` must be <= 1024 characters
 //   - SKILL.md should stay under ~500 lines / ~5000 tokens; detailed
 //     instructions belong in files loaded on demand, not inlined
+// Each skills/<name>/SKILL.md is already independently under that limit,
+// so mirroring them verbatim as their own pages keeps every page compliant
+// on its own.
 //
-// So this does NOT inline the six skill bodies. It's a short router: each
-// skill's own frontmatter description (already written for keyword-based
-// routing) plus a link to its full SKILL.md on GitHub, which an agent
-// fetches only once it's decided that skill is relevant.
+// Deep skills/*/references/** material (~25k lines total) stays linked
+// back to GitHub — the one tier where asking for a domain hop is fine,
+// since it's optional depth most agents won't need.
 
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const SKILLS_DIR = path.join(ROOT, "skills");
-const OUT_PATH = path.join(ROOT, "dist", "skill.md");
+const DIST_DIR = path.join(ROOT, "dist");
+const SKILLS_OUT_DIR = path.join(DIST_DIR, "skill");
 const REPO_URL = "https://github.com/GitbookIO/gitbook-skills";
+const DOCS_BASE_URL = "https://gitbook.com/docs";
 const MAX_DESCRIPTION_LENGTH = 1024;
 const RECOMMENDED_MAX_LINES = 500;
 
@@ -99,6 +109,7 @@ function parseSkillFile(dir) {
   return {
     name: frontmatter.name || dir,
     description: frontmatter.description || "",
+    raw,
   };
 }
 
@@ -111,14 +122,26 @@ function main() {
 
   const parsed = SKILLS.map((s) => ({ ...s, ...parseSkillFile(s.dir) }));
 
+  fs.mkdirSync(SKILLS_OUT_DIR, { recursive: true });
+  for (const s of parsed) {
+    const outPath = path.join(SKILLS_OUT_DIR, `${s.dir}.md`);
+    fs.writeFileSync(outPath, s.raw);
+    const lines = s.raw.split("\n").length;
+    if (lines > RECOMMENDED_MAX_LINES) {
+      console.warn(
+        `Warning: skills/${s.dir}/SKILL.md is ${lines} lines, over the spec's recommended ${RECOMMENDED_MAX_LINES}-line ceiling`
+      );
+    }
+  }
+
   const entries = parsed
     .map((s) => {
-      const skillUrl = `${REPO_URL}/blob/main/skills/${s.dir}/SKILL.md`;
-      return `### ${s.title}\n\n${s.description}\n\nFull instructions: [skills/${s.dir}/SKILL.md](${skillUrl})`;
+      const pageUrl = `${DOCS_BASE_URL}/skill/${s.dir}.md`;
+      return `### ${s.title}\n\n${s.description}\n\nFull instructions: [${pageUrl}](${pageUrl})`;
     })
     .join("\n\n");
 
-  const out = `---
+  const routerOut = `---
 name: gitbook
 description: >-
 ${wrapFolded(UMBRELLA_DESCRIPTION)}
@@ -130,21 +153,30 @@ This page is generated automatically from [GitbookIO/gitbook-skills](${REPO_URL}
 
 # GitBook
 
-GitBook's skill for AI coding agents, covering six areas of GitBook work. Each section below is one of the six skills in [gitbook-skills](${REPO_URL}) — read its description to see if it matches your task, then fetch its linked \`SKILL.md\` for full instructions before acting. Each skill's \`SKILL.md\` links out to further reference material (full block syntax, API payloads, troubleshooting) under \`skills/<name>/references/\` when you need more depth than the top-level instructions.
+GitBook's skill for AI coding agents, covering six areas of GitBook work. Each section below is one of the six skills in [gitbook-skills](${REPO_URL}) — read its description to see if it matches your task, then fetch its linked page for full instructions before acting. Each skill's instructions link out to further reference material (full block syntax, API payloads, troubleshooting) in [gitbook-skills](${REPO_URL}) under \`skills/<name>/references/\` when you need more depth than the top-level instructions.
 
 ${entries}
 `;
 
-  const lineCount = out.split("\n").length;
-  if (lineCount > RECOMMENDED_MAX_LINES) {
+  const routerLines = routerOut.split("\n").length;
+  if (routerLines > RECOMMENDED_MAX_LINES) {
     console.warn(
-      `Warning: generated skill.md is ${lineCount} lines, over the spec's recommended ${RECOMMENDED_MAX_LINES}-line ceiling`
+      `Warning: generated skill.md is ${routerLines} lines, over the spec's recommended ${RECOMMENDED_MAX_LINES}-line ceiling`
     );
   }
 
-  fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-  fs.writeFileSync(OUT_PATH, out);
-  console.log(`Wrote ${OUT_PATH} (${out.length} bytes, ${lineCount} lines)`);
+  fs.writeFileSync(path.join(DIST_DIR, "skill.md"), routerOut);
+  fs.writeFileSync(
+    path.join(DIST_DIR, "skill-manifest.json"),
+    JSON.stringify(
+      parsed.map(({ dir, title }) => ({ dir, title })),
+      null,
+      2
+    )
+  );
+
+  console.log(`Wrote dist/skill.md (${routerOut.length} bytes, ${routerLines} lines)`);
+  console.log(`Wrote ${parsed.length} skill pages to dist/skill/`);
 }
 
 main();

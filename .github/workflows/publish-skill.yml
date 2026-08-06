@@ -17,7 +17,7 @@ jobs:
       - name: Checkout gitbook-skills
         uses: actions/checkout@v4
 
-      - name: Build combined skill.md
+      - name: Build gitbook skill
         run: node scripts/build-skill.js
 
       - name: Checkout public-docs
@@ -41,15 +41,20 @@ jobs:
           git checkout -B sync/gitbook-skill origin/main
 
           cp ../dist/skill.md ./skill.md
+          rm -rf skill
+          mkdir -p skill
+          cp ../dist/skill/*.md skill/
+          cp ../dist/skill-manifest.json ./skill-manifest.json
           node ../scripts/update-summary.js
+          rm -f skill-manifest.json
 
-          if git diff --quiet -- skill.md SUMMARY.md; then
+          git add skill.md skill/ SUMMARY.md
+          if git diff --cached --quiet; then
             echo "No changes to publish"
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          git add skill.md SUMMARY.md
           git commit -m "Sync gitbook skill.md from gitbook-skills@${GITHUB_SHA:0:7}"
           git push --force origin sync/gitbook-skill
           echo "changed=true" >> "$GITHUB_OUTPUT"
