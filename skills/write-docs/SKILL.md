@@ -166,7 +166,22 @@ Reach for the change-request content-push path instead (MCP's `updateChangeReque
 
 For anything larger — a new page tree, a multi-page rewrite, a migration — prefer Git Sync, even if that means pausing to confirm the repo is cloned locally first. Don't default to the change-request tool just because it's the first one that worked.
 
-Whichever path pushes the change, surface the CR's rendered site preview link (not just the editor/diff link) before wrapping up — see the `cr-create` skill's "Surfacing the preview link." It isn't part of the change-request response itself, so it's easy to forget.
+#### Two links are mandatory whenever a change request is involved
+
+If any part of this edit went through a change request (`create_change_request` / `updateChangeRequestContent`, or the REST equivalents), **the edit is not done until both of the following have been reported back, every single time — this is a hard rule, not a reminder to skim past:**
+
+1. **The CR diff/editor link** — `urls.app` on the change-request object, returned by `create_change_request`, `updateChangeRequestContent`, or `getChangeRequestById`.
+2. **The site preview link** — `urls.preview` on the **Site** object. This is never part of the change-request response — it requires a separate lookup — which is exactly why it's the one that gets forgotten. Resolve it every time, not just when it comes to mind.
+
+This applies no matter which skill pushed the content (this skill or `configure-site`) and no matter the transport (MCP or REST). See the `cr-create` skill's "Surfacing the preview link" for the full write-up and the REST resolution steps. **MCP equivalent** (GitBook MCP has no single ready-made "give me the preview link" call):
+
+1. Resolve the space's organization — `invoke_operation("getSpaceById", {path:{spaceId}})` → `.organization` (skip if you already have the org ID).
+2. Find which site the space belongs to — `list_sites` / `get_site_structure`, or check each site's site-spaces for a match on `.space.id`.
+3. `invoke_operation("getSiteById", {path:{organizationId, siteId}})` → `.urls.preview` (and `.urls.published` once the site is live).
+
+If the space isn't attached to any published site, say so plainly and give only the diff link — don't quietly drop the preview line without explanation.
+
+This has already failed silently in practice: an edit was pushed and merged with only the diff link reported, and the preview link only surfaced when a person asked for it directly. Treat the two-link checklist above as literal.
 
 ### Reference files
 
