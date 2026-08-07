@@ -100,6 +100,17 @@ function wrapFolded(text, indent = "  ", width = 100) {
   return lines.map((l) => indent + l).join("\n");
 }
 
+// GitBook Git Sync hides a page from the published table of contents when
+// its frontmatter includes `hidden: true`. These pages are mirrors of the
+// SKILL.md files (an agent-facing router, not end-user docs), so they're
+// published hidden — reachable via direct link / MCP / llms-full.txt, but
+// kept out of the public-docs nav. Injected here at publish time rather
+// than in the source SKILL.md files, since `hidden` is a GitBook concern,
+// not part of the Agent Skill spec those files also have to satisfy.
+function withHiddenFrontmatter(raw) {
+  return raw.replace(/^(---\r?\n)/, "$1hidden: true\n");
+}
+
 function parseSkillFile(dir) {
   const filePath = path.join(SKILLS_DIR, dir, "SKILL.md");
   const raw = fs.readFileSync(filePath, "utf8");
@@ -125,8 +136,9 @@ function main() {
   fs.mkdirSync(SKILLS_OUT_DIR, { recursive: true });
   for (const s of parsed) {
     const outPath = path.join(SKILLS_OUT_DIR, `${s.dir}.md`);
-    fs.writeFileSync(outPath, s.raw);
-    const lines = s.raw.split("\n").length;
+    const published = withHiddenFrontmatter(s.raw);
+    fs.writeFileSync(outPath, published);
+    const lines = published.split("\n").length;
     if (lines > RECOMMENDED_MAX_LINES) {
       console.warn(
         `Warning: skills/${s.dir}/SKILL.md is ${lines} lines, over the spec's recommended ${RECOMMENDED_MAX_LINES}-line ceiling`
@@ -142,6 +154,7 @@ function main() {
     .join("\n\n");
 
   const routerOut = `---
+hidden: true
 name: gitbook
 description: >-
 ${wrapFolded(UMBRELLA_DESCRIPTION)}
