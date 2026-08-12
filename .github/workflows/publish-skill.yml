@@ -40,15 +40,15 @@ jobs:
           git fetch origin main
           git checkout -B sync/gitbook-skill origin/main
 
-          cp ../dist/skill.md ./skill.md
-          rm -rf skill
-          mkdir -p skill
-          cp ../dist/skill/*.md skill/
-          cp ../dist/skill-manifest.json ./skill-manifest.json
-          node ../scripts/update-summary.js
-          rm -f skill-manifest.json
+          rm -rf documentation/skill
+          mkdir -p documentation/skill
+          cp ../dist/skill.md documentation/skill/README.md
+          cp ../dist/skill/*.md documentation/skill/
+          cp ../dist/skill-manifest.json documentation/skill-manifest.json
+          (cd documentation && node ../../scripts/update-summary.js)
+          rm -f documentation/skill-manifest.json
 
-          git add skill.md skill/ SUMMARY.md
+          git add documentation/skill/ documentation/SUMMARY.md
           if git diff --cached --quiet; then
             echo "No changes to publish"
             echo "changed=false" >> "$GITHUB_OUTPUT"
