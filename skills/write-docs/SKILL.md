@@ -154,6 +154,18 @@ When GitBook is synced with Git, changes flow in both directions — Git changes
 
 **Best practices:** make structural changes via SUMMARY.md in Git; use branch-based workflows for significant updates; review auto-generated commits from GitBook.
 
+#### Previewing a pushed branch
+
+The two-link rule below covers content pushed through a change request. When you push
+through **Git** instead, the equivalent is the commit status: opening a pull/merge request —
+or pushing to a branch that already has one — makes GitBook import that branch and post a
+status linking a preview of the rendered site. **Give the user that link whenever you push
+docs changes, without being asked.** Read it off the commit status rather than building a
+URL: the revision id is minted at import time and can't be derived from the branch or the PR,
+and every push mints a new one, so an earlier link goes stale. See
+`references/git-sync-previews.md` for the GitHub and GitLab commands and what to do while the
+import is still running.
+
 #### Choosing Git Sync vs. a change-request content push
 
 When a space has Git Sync configured and you have (or can get) a local checkout of the synced repo, **prefer editing the files directly and committing/pushing** — Git Sync propagates the change to GitBook. This holds even in an MCP session where a change-request content-push tool (e.g. `updateChangeRequestContent`) is available and connected: the tool being one call away isn't a reason to bypass Git as the source of truth. An agent that discovers it *can* push straight into a CR should still check whether Git Sync is set up and reachable before doing so.
@@ -171,13 +183,13 @@ For anything larger — a new page tree, a multi-page rewrite, a migration — p
 If any part of this edit went through a change request (`create_change_request` / `updateChangeRequestContent`, or the REST equivalents), **the edit is not done until both of the following have been reported back, every single time — this is a hard rule, not a reminder to skim past:**
 
 1. **The CR diff/editor link** — `urls.app` on the change-request object, returned by `create_change_request`, `updateChangeRequestContent`, or `getChangeRequestById`.
-2. **The site preview link** — `urls.preview` on the **Site** object. This is never part of the change-request response — it requires a separate lookup — which is exactly why it's the one that gets forgotten. Resolve it every time, not just when it comes to mind.
+2. **The site preview link** — the site URL from the **Site** object (`urls.published` when the site is public, else `urls.preview`) with **`/~/changes/<number>/` appended**. This is never part of the change-request response — it requires a separate lookup — which is exactly why it's the one that gets forgotten. Resolve it every time, not just when it comes to mind. **Without the `~/changes/` segment the link is not a preview of the change request** — it renders the site's current content, so it will look plausible and be wrong.
 
 This applies no matter which skill pushed the content (this skill or `configure-site`) and no matter the transport (MCP or REST). See the `cr-create` skill's "Surfacing the preview link" for the full write-up and the REST resolution steps. **MCP equivalent** (GitBook MCP has no single ready-made "give me the preview link" call):
 
 1. Resolve the space's organization — `invoke_operation("getSpaceById", {path:{spaceId}})` → `.organization` (skip if you already have the org ID).
 2. Find which site the space belongs to — `list_sites` / `get_site_structure`, or check each site's site-spaces for a match on `.space.id`.
-3. `invoke_operation("getSiteById", {path:{organizationId, siteId}})` → `.urls.preview` (and `.urls.published` once the site is live).
+3. `invoke_operation("getSiteById", {path:{organizationId, siteId}})` → `.urls.published` (once the site is live), else `.urls.preview`. Append `/~/changes/<number>/`, stripping the trailing slash the API returns.
 
 If the space isn't attached to any published site, say so plainly and give only the diff link — don't quietly drop the preview line without explanation.
 
@@ -191,3 +203,4 @@ Load these on demand when the task requires deeper detail:
 - `references/frontmatter.md` — all frontmatter fields with descriptions, YAML quoting rules, cover images, adaptive content (`if:`), and the variables/expressions deep-dive. **Load when configuring page layout, covers, conditional visibility, or variables.**
 - `references/markdown.md` — standard markdown, code blocks with titles, math/TeX, Mermaid diagram types and examples, and SVG handling quirks. **Load when working with diagrams, math, or SVG assets.**
 - `references/configuration.md` — `.gitbook.yaml` options, the `.gitbook/` directory structure (assets, includes, vars, tags), and SUMMARY.md grammar rules in full. **Load when setting up a space, adding redirects, or authoring/editing SUMMARY.md.**
+- `references/git-sync-previews.md` — getting a preview link for a branch pushed through Git Sync: reading the GitBook commit status on GitHub and GitLab, telling the site preview from the editor diff, and handling an import that's still running. **Load whenever you push docs changes to a branch with a pull/merge request open.**

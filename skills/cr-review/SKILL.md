@@ -28,9 +28,9 @@ stock on current macOS):
 ```bash
 set -a; [ -f .env ] && . ./.env; set +a          # load GITBOOK_TOKEN
 gbapi() {                                          # gbapi METHOD /path [extra curl args…]
-  local method="$1" path="$2"; shift 2
+  local method="$1" apipath="$2"; shift 2   # NB: not `path` — in zsh that is tied to $PATH
   curl -sS --fail-with-body -X "$method" \
-    "https://api.gitbook.com/v1${path}" \
+    "https://api.gitbook.com/v1${apipath}" \
     -H "Authorization: Bearer ${GITBOOK_TOKEN}" \
     -H "Content-Type: application/json" "$@"
 }
@@ -53,11 +53,11 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 | List orgs (to get IDs) | `GET /orgs?limit=100` | `.items[]` → `id`, `title` |
 | List spaces in an org | `GET /orgs/<org>/spaces?limit=100` | `.items[]` → `id`, `title` |
 | Discover CRs across an **org** | `GET /orgs/<org>/change-requests?[status=][&creator=][&space=][&site=][&requestedReviewer=][&contributor=][&orderBy=]` | |
-| Discover CRs in a **single space** | `GET /spaces/<space>/change-requests?[status=][&creator=][&requestedReviewer=]` | |
+| Discover CRs in a **single space** | `GET /spaces/<space>/change-requests?[status=][&creator=][&requestedReviewer=]` | **`status` is effectively required** — omitting it returns an empty list, not everything |
 | CR detail | `GET /spaces/<space>/change-requests/<cr>` | `subject`, `status`, `createdBy`, `comments`, `urls.app` |
 | Link to review the diff | use `.urls.app` straight from the list/get output — **never construct a URL** | |
-| Link to the rendered preview | `GET /spaces/<space>` → `.organization`, then find the site behind the space and read its `urls.preview` | `urls.app` is only the diff view — see "Surfacing the preview link" in the `cr-create` skill for the full resolution steps; reviewers deciding approve/request-changes usually want to see the rendered result, not just the diff |
-| Structural change summary | `GET /spaces/<space>/change-requests/<cr>/changes` | entries like `page_created`/`page_edited` with `page.title`, `page.path` |
+| Link to the rendered preview | `GET /spaces/<space>` → `.organization`, then find the site behind the space, read its `urls.published`/`urls.preview`, and **append `/~/changes/<number>/`** | `urls.app` is only the diff view — see "Surfacing the preview link" in the `cr-create` skill for the full resolution steps. **A bare site URL is not a preview of the CR**: without the `~/changes/` segment it renders the site's current content. Reviewers deciding approve/request-changes usually want the rendered result, not just the diff |
+| Structural change summary | `GET /spaces/<space>/change-requests/<cr>/changes` | entries like `page_created`/`page_edited` with `page.title`, `page.path`. **Payload is `{changes, more}` — read `.changes`, not `.items`** |
 | Per-page prose diff | CR side `GET /spaces/<space>/change-requests/<cr>/content/page/<pageId>?format=markdown` vs base `GET /spaces/<space>/content/page/<pageId>?format=markdown`, diffed client-side | input to a prose summary only — never paste this as a line-by-line diff; point the user at `urls.app` for the actual diff |
 | Existing comments (context) | `GET /spaces/<space>/change-requests/<cr>/comments?format=markdown&status=all` | bodies at `body.markdown`; poster at `postedBy.id`; classify human vs `gitbook:agent` |
 | **Leave a comment** *(GATE)* | `POST /spaces/<space>/change-requests/<cr>/comments` body `{"body":{"markdown":"…"}}` (opt. `"page"`/`"node"`) | posts publicly, notifies the author |
@@ -72,8 +72,10 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
 
 - The CR-list filters (`status`, `creator`, `space`, `site`, `requestedReviewer`, `contributor`,
   `orderBy`) are scalar query params and work directly. `status` takes a single value
-  (`draft`/`open`/`archived`/`merged`) — for "any state," union client-side; default discovery
-  to `status=open`.
+  (`draft`/`open`/`archived`/`merged`) — for "any state," union client-side. Omitting `status`
+  returns an **empty** list rather than everything, so always pass one. Default *triage*
+  discovery to `status=open`, but never filter to `open` when the user asks for the "latest"
+  or "most recent" CR — a space's newest CR is often a draft.
 - The comments `authors` filter **does** work over the raw API (`…/comments?authors=<id>`,
   repeatable). Even so, to split human vs agent you pull **all** comments and classify on
   `postedBy.id` (a filter narrows, it doesn't classify).
@@ -84,7 +86,9 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
   response through `jq`.
 - **The `authors` server-side filter is available** (see above).
 - **Pagination is invisible.** List responses return a capped page with no total or
-  next-cursor. Raise `limit` and/or page with `page=` before concluding "not found."
+  next-cursor. Raise `limit`, and paginate with the response's `next.page` **cursor** passed as
+  `page=` — it is not an integer offset, so `page=1` returns HTTP 400. Do this before
+  concluding "not found."
 
 ## Prerequisites
 
@@ -111,7 +115,7 @@ the wrong space/CR (a confident "0 comments" from a space that isn't the one you
   exists. See "Summarizing a CR."
 - **Discovery lists paginate — never conclude "not found" from the first page.** `GET /orgs`,
   `GET …/spaces`, and the CR-list calls return a capped page with no total / "more" indicator.
-  Raise `limit` (and/or page with `page=`) and search the full set before telling the user
+  Raise `limit` (and paginate with the `next.page` cursor as `page=`, not an integer) and search the full set before telling the user
   something doesn't exist.
 - **Verify the resolved object before trusting a result.** After resolving an org/space/CR to an
   ID, confirm the returned object's own `title`/`subject` matches what the user named *before*
@@ -137,7 +141,7 @@ gbapi GET "/orgs?limit=100"              | jq -r '.items[] | "\(.id)\t\(.title)"
 gbapi GET "/orgs/<org>/spaces?limit=100" | jq -r '.items[] | "\(.id)\t\(.title)"'  # space IDs in an org
 ```
 
-Raise `limit` / page with `page=` before concluding "not found."
+Raise `limit`, and paginate with the `next.page` cursor as `page=` (not an integer), before concluding "not found."
 
 ## Actions
 
