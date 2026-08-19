@@ -37,9 +37,9 @@ output" rule — **fails loudly on any non-2xx, printing the API's error body** 
 ```bash
 set -a; [ -f .env ] && . ./.env; set +a          # load GITBOOK_TOKEN (and SLACK_WEBHOOK_URL)
 gbapi() {                                          # gbapi METHOD /path [extra curl args…]
-  local method="$1" path="$2"; shift 2
+  local method="$1" apipath="$2"; shift 2   # NB: not `path` — in zsh that is tied to $PATH
   curl -sS --fail-with-body -X "$method" \
-    "https://api.gitbook.com/v1${path}" \
+    "https://api.gitbook.com/v1${apipath}" \
     -H "Authorization: Bearer ${GITBOOK_TOKEN}" \
     -H "Content-Type: application/json" "$@"
 }
@@ -138,14 +138,25 @@ SITE=$(gbapi GET "/orgs/$ORG/sites" | jq -r '.items[].id' | while read -r s; do
     | jq -e --arg space "<space>" '.items[] | select(.space.id == $space)' >/dev/null \
     && echo "$s" && break
 done)
-[ -n "$SITE" ] && gbapi GET "/orgs/$ORG/sites/$SITE" | jq '{preview: .urls.preview, published: .urls.published}'
+if [ -n "$SITE" ]; then
+  # A public site's published URL needs no sign-in and never expires; anything else
+  # (unlisted, visitor-auth, not yet published) has to go through the preview host.
+  BASE=$(gbapi GET "/orgs/$ORG/sites/$SITE" \
+    | jq -r 'if .visibility == "public" and .urls.published then .urls.published else .urls.preview end')
+  NUM=$(gbapi GET "/spaces/<space>/change-requests/<cr>" | jq -r .number)
+  echo "${BASE%/}/~/changes/${NUM}/"     # ← the preview link for THIS change request
+fi
 ```
 
-- **`urls.preview`** — the site rendered with draft/in-progress content, available as soon as
-  the site itself is published, even before this CR merges. This is the link to hand someone
-  who just wants to see the result.
-- **`urls.published`** — the live site URL; only present once the site has been published, and
-  only reflects this CR's content after it's merged.
+- **The `~/changes/<number>/` segment is what scopes the link to your change request.** A
+  bare site URL — `urls.published` or `urls.preview` — renders whatever the site currently
+  holds, so it loads fine and shows the wrong thing. Both come back from the API with a
+  trailing slash, so strip it before appending or you emit a double slash.
+- **`urls.published`** — the live site URL; only present once the site has been published.
+  Prefer it when the site is public: no sign-in, no expiry, safe to paste anywhere.
+- **`urls.preview`** — the site preview host. Viewers still need access to the site and are
+  asked to sign in, so it's a worse link to hand to someone — use it only when there's no
+  public published URL.
 - **Preview only exists when the space is attached to a published docs site** — not for a bare
   space with no site, and GitBook itself disables the preview UI for share-link / visitor-auth
   sites. If the site-spaces search above finds nothing, say so plainly (*"this space isn't on a
@@ -154,8 +165,18 @@ done)
 - If a space is unexpectedly attached to more than one site, resolve and mention all of them
   rather than picking one.
 
-Report both links together, e.g.: *"Change request #42 created — [review the diff](…urls.app)
-· [preview the rendered docs](…urls.preview)."*
+Use the CR's `number`; its `id` works too but is longer. A **draft** change request previews
+fine — you don't have to open it first.
+
+**Check the link before you send it.** `curl -sL -o /dev/null -w '%{http_code}\n' "<url>"`. A
+404 means the wrong number or the wrong site. A 200 is necessary but *not* sufficient — an
+archived CR returns 200 as well — so when it matters, fetch a page the CR touched and confirm
+it differs from the same path on the live site.
+
+Report both links together, e.g.: *"Change request #42 created — [review the
+diff](…urls.app) · [preview the rendered docs](https://docs.example.com/~/changes/42/)."*
+Note the preview link carries the `~/changes/42/` segment; a bare site URL is not a preview
+of this change request.
 
 ## Prerequisites
 
@@ -214,13 +235,13 @@ step in the GitBook UI — the skill can't do it.
 ## Find my most recent change request
 
 When the task is "pull the latest comments on *my* CR" rather than create one, locate the CR
-first. `status` takes a single value (`draft`/`open`/`archived`/`merged`), and the bare list
-plus `open` both hide drafts — a freshly-authored CR is usually a draft. Union the statuses
+first. `status` takes a single value (`draft`/`open`/`archived`/`merged`), and **omitting it returns
+an empty list, not everything** — so treat it as required. The bare list and `open` both hide drafts — a freshly-authored CR is usually a draft. Union the statuses
 client-side, sort by `updatedAt`, take the newest:
 
 ```bash
 ME=$(gbapi GET /user | jq -r .id)
-for st in open draft merged; do
+for st in open draft merged archived; do
   gbapi GET "/spaces/<space>/change-requests?status=$st&creator=$ME&limit=100"
 done | jq -rs 'map(.items) | add // [] | sort_by(.updatedAt) | reverse
   | .[] | "\(.number)\t\(.status)\t\(.updatedAt)\t\(.id)\t\(.subject)"'
