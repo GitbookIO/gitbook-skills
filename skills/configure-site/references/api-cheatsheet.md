@@ -105,9 +105,9 @@ curl -s -H "Authorization: Bearer $GITBOOK_TOKEN" \
   https://api.gitbook.com/v1/spaces/$SPACE_ID/git/info
 ```
 
-Returns `{repoName, installationProvider: "github" | "gitlab", integration, url, updatedAt}` when sync is set up; 404 when not. Use this to verify the user finished the UI handoff.
+Returns `{repoName, installationProvider: "github" | "gitlab", integration, url, updatedAt}` when sync is set up; 404 when not. Use this to verify the user finished the UI handoff. There's no equivalent site-level status endpoint yet — verify a site-wide setup by checking each of its spaces this way.
 
-**There is no API to *set up* Git Sync.** This is the load-bearing constraint of this whole workflow.
+**There is effectively no API to *set up* Git Sync yet.** This is the load-bearing constraint of this whole workflow. There is an operation, `installGitSyncProviderOnTarget`, that accepts either a site or a space as its target — but connecting the GitHub/GitLab account still requires OAuth in the GitBook app, and as of this writing the operation isn't exposed through the GitBook MCP server (`search` for it returns nothing). GitBook is exploring a reusable "connection" that could be set up once and driven by API afterward, but that isn't available yet. Don't design a flow around it — always route Git Sync setup through the UI handoff (`references/git-sync-handoff.md`), and re-check `search`/`describe_operation` occasionally if you want to confirm whether this has changed.
 
 ## Site sections, section groups, and site-spaces
 
