@@ -2,7 +2,7 @@
 name: configure-site
 metadata:
   version: "1.0"
-description: "Create and maintain entire GitBook documentation sites end-to-end — design the site structure from source content, scaffold a Git repository in monorepo layout, set up the GitHub/GitLab remote, drive the GitBook API (via its REST API or MCP server) to create the site/sections/spaces, apply branded customization, and hand the user clean instructions for the one UI step (Git Sync wiring) that GitBook does not expose programmatically. Always set up Git Sync at the site level first — mapping every space to a directory in one repo/branch via docs.yaml — and only fall back to per-space Git Sync when one space genuinely needs an independent repo or branch. Trigger this skill whenever the user wants to spin up a new GitBook docs site, restructure or extend an existing one, link a site or spaces to a Git repo for sync, change a site's branding (logo, colors, fonts, header/footer), or programmatically manage spaces, sections, or site-spaces. This skill is the orchestration layer; for authoring the markdown content of any individual page it defers to the companion `write-docs` skill."
+description: "Create and maintain entire GitBook documentation sites end-to-end — design the site structure from source content, scaffold a Git repository in monorepo layout, set up the GitHub/GitLab remote, drive the GitBook API (via its REST API or MCP server) to create the site/sections/spaces, apply branded customization, and hand the user clean instructions for the one UI step (Git Sync wiring) that GitBook does not expose programmatically. Always set up Git Sync at the site level first — mapping every space to a directory in one repo/branch via gitbook-docs.yaml — and only fall back to per-space Git Sync when one space genuinely needs an independent repo or branch. Trigger this skill whenever the user wants to spin up a new GitBook docs site, restructure or extend an existing one, link a site or spaces to a Git repo for sync, change a site's branding (logo, colors, fonts, header/footer), or programmatically manage spaces, sections, or site-spaces. This skill is the orchestration layer; for authoring the markdown content of any individual page it defers to the companion `write-docs` skill."
 ---
 
 # Configure GitBook Site
@@ -39,11 +39,11 @@ Never write the token to a file, never echo it back in a response, never commit 
 
 The most important thing to internalize before doing anything: **GitBook can do almost everything except set up Git Sync, regardless of transport**. Authorizing GitHub/GitLab, picking the repository, choosing the branch, and choosing the initial sync direction are all UI-only operations — both the REST API and MCP (which wraps it) only let you *read* the resulting Git Sync state, never set it up. There's an API operation, `installGitSyncProviderOnTarget`, that targets either a site or a space, but the account-connection (OAuth) step still has to happen in the app, and it isn't yet exposed through GitBook's MCP server — treat it as not-yet-usable rather than building a flow around it.
 
-**Git Sync now configures at the site level, and that's the default to reach for.** One connection (one repo, one branch) covers the whole site; `docs.yaml` maps each space to its own directory, which is the same shape this skill already scaffolds a monorepo into. Per-space Git Sync still exists, but it's now the exception — reach for it only when a specific space needs an independent repo or branch (e.g. a private space that can't live in the public docs repo).
+**Git Sync now configures at the site level, and that's the default to reach for.** One connection (one repo, one branch) covers the whole site; `gitbook-docs.yaml` maps each space to its own directory, which is the same shape this skill already scaffolds a monorepo into. Per-space Git Sync still exists, but it's now the exception — reach for it only when a specific space needs an independent repo or branch (e.g. a private space that can't live in the public docs repo).
 
 That means the cleanest end-to-end flow is always:
 
-1. Claude scaffolds a Git repo locally as a monorepo (one directory per space), ideally with `docs.yaml` pre-authored mapping each space to its directory, and pushes the remote when tooling permits
+1. Claude scaffolds a Git repo locally as a monorepo (one directory per space), ideally with `gitbook-docs.yaml` pre-authored mapping each space to its directory, and pushes the remote when tooling permits
 2. Claude creates the site, sections, and any empty spaces it can
 3. **The user does one short, well-scripted UI step in GitBook: connect the site to the repo/branch and confirm the space-to-directory mapping** — not one step per space
 4. Claude applies branding/customization
@@ -159,8 +159,8 @@ A few notes about this layout that often trip people up:
 - **`.gitbook.yaml` is optional.** GitBook works fine on the default convention of `README.md` + `SUMMARY.md` per space. Only add a `.gitbook.yaml` when you need to override the root, define redirects, or do something else non-default. The bundled example site (`references/example-site/`) has zero `.gitbook.yaml` files and works perfectly.
 - **`.gitbook/vars.yaml`** holds space-scoped variables that pages can reference inline (e.g. `support_email: support@evolve.com` referenced as `{% vars.support_email %}`). Useful for any value that appears on many pages.
 - **`.gitbook/includes/<name>.md`** holds reusable content blocks — a snippet you embed in many pages with `{% include "...persona-switcher" %}`. Use these instead of copy-pasting boilerplate.
-- The space directory name (e.g. `guides/`) is what the user maps that space to under **Content mapping** when wiring up site-wide Git Sync — not the site's "Project directory" field, which only points at where `docs.yaml` itself lives (the repo root, in this layout). Don't conflate the two; see `references/git-sync-handoff.md`.
-- Consider pre-authoring a `docs.yaml` at the repo root that maps every space to its directory (see `references/git-sync-handoff.md` for the shape). GitBook reads it on first sync, so the user has less to fill in by hand during setup.
+- The space directory name (e.g. `guides/`) is what the user maps that space to under **Content mapping** when wiring up site-wide Git Sync — not the site's "Project directory" field, which only points at where `gitbook-docs.yaml` itself lives (the repo root, in this layout). Don't conflate the two; see `references/git-sync-handoff.md`.
+- Consider pre-authoring a `gitbook-docs.yaml` at the repo root that maps every space to its directory (see `references/git-sync-handoff.md` for the shape). GitBook reads it on first sync, so the user has less to fill in by hand during setup.
 
 A minimal `.gitbook.yaml`, when you do need one, looks like:
 
@@ -456,7 +456,7 @@ For a real example of the structure response (sections, section-groups, multi-la
 This is the part that has to feel polished. Once the repo is pushed and the site exists, generate one clear handoff for the whole site — not one block per space. The user needs:
 
 1. The repo URL and branch name (usually `main`)
-2. The site's **Project directory** — where `docs.yaml` lives (blank/root unless this is a larger monorepo)
+2. The site's **Project directory** — where `gitbook-docs.yaml` lives (blank/root unless this is a larger monorepo)
 3. The initial sync direction — almost always **GitHub → GitBook** (or GitLab → GitBook), since the repo is the source of truth at this point
 4. The **content mapping** — each space's title paired with its directory (e.g. `Guides` → `./guides`, `API Reference` → `./api-reference`)
 

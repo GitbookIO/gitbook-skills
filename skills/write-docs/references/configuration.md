@@ -44,7 +44,7 @@ For repositories with multiple documentation projects:
 
 How you point Git Sync at this subdirectory depends on the sync scope:
 
-* **Site-wide Git Sync (default)** — the site's "Project directory" points to where `docs.yaml` lives, not to any individual space's `.gitbook.yaml`. Each space's directory (containing its own `.gitbook.yaml`) is set separately via `docs.yaml`'s content mapping. See `configure-site`'s `references/git-sync-handoff.md`.
+* **Site-wide Git Sync (default)** — the site's "Project directory" points to where `gitbook-docs.yaml` lives, not to any individual space's `.gitbook.yaml`. Each space's directory (containing its own `.gitbook.yaml`) is set separately via `gitbook-docs.yaml`'s content mapping. See `configure-site`'s `references/git-sync-handoff.md`.
 * **Per-space Git Sync** (used only when a space needs an independent repo/branch) — that space's own "Project directory" field points directly at the subdirectory containing its `.gitbook.yaml`.
 
 **Important notes:**

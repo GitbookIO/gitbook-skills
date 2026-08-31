@@ -1,6 +1,6 @@
 # Git Sync handoff
 
-Git Sync can now be configured for an entire **site** in one pass, mapping every space to a directory in a single repo/branch via `docs.yaml`. **This is the default workflow — always reach for site-wide Git Sync first.** Per-space ("individual space") Git Sync still exists, but treat it as a fallback for the specific case where one space needs to live in a different repo or branch than the rest of the site (e.g. a private space, or content that must stay out of the public docs repo).
+Git Sync can now be configured for an entire **site** in one pass, mapping every space to a directory in a single repo/branch via `gitbook-docs.yaml`. **This is the default workflow — always reach for site-wide Git Sync first.** Per-space ("individual space") Git Sync still exists, but treat it as a fallback for the specific case where one space needs to live in a different repo or branch than the rest of the site (e.g. a private space, or content that must stay out of the public docs repo).
 
 GitBook's API does not let you fully self-serve this setup yet: connecting the GitHub/GitLab account (OAuth), picking the repository, and choosing the branch and initial sync direction are UI-only. There is an API operation, `installGitSyncProviderOnTarget`, that accepts either a site or a space as its target — but as of this writing it isn't exposed through the GitBook MCP server, and the account-connection step still has to happen in the app first regardless. GitBook has said they're exploring letting a connection be set up once and reused across the API, but that isn't available yet. Don't build a flow around it — check `search`/`describe_operation` for `installGitSyncProviderOnTarget` if you want to confirm current availability, but default to the UI handoff below.
 
@@ -11,18 +11,18 @@ This file is the template for the user-facing instructions you generate so the u
 Before generating the handoff, make sure all of this is true:
 
 - The local repo is committed and pushed to a remote (GitHub or GitLab).
-- You know the site's **Project directory** — the path in the repo where `docs.yaml` should live. Leave this blank for a repo root; set it only when the docs live in a subdirectory of a larger monorepo (e.g. alongside application code).
-- You know each space's **content directory** — the path (relative to the project directory, or from the repo root with a leading `/`) that maps to that space. This is what you'd pre-author into `docs.yaml` if you scaffolded the repo yourself; see `content-configuration.md` conventions below.
+- You know the site's **Project directory** — the path in the repo where `gitbook-docs.yaml` should live. Leave this blank for a repo root; set it only when the docs live in a subdirectory of a larger monorepo (e.g. alongside application code).
+- You know each space's **content directory** — the path (relative to the project directory, or from the repo root with a leading `/`) that maps to that space. This is what you'd pre-author into `gitbook-docs.yaml` if you scaffolded the repo yourself; see `content-configuration.md` conventions below.
 - You know which branch the user wants to sync from (default: `main`).
 - The site exists in GitBook (you have its dashboard URL).
 - You know whether the repo content should overwrite GitBook (repo is the source of truth — the normal case for a fresh scaffold) or whether GitBook's existing content should overwrite the repo.
 
 If any of those is false, finish that prep work first. Don't ask the user to context-switch into the GitBook UI before everything is ready.
 
-**If you scaffolded the repo yourself**, pre-author `docs.yaml` at the project directory with each space already mapped (see the example below) and commit/push it before handoff. GitBook reads the existing mapping on first sync, so the user has less to fill in by hand during **Map your spaces**. Verify the mapping still matches what you tell them to enter in the UI — GitBook creates or updates `docs.yaml` when it saves the content mapping, so the two need to agree.
+**If you scaffolded the repo yourself**, pre-author `gitbook-docs.yaml` at the project directory with each space already mapped (see the example below) and commit/push it before handoff. GitBook reads the existing mapping on first sync, so the user has less to fill in by hand during **Map your spaces**. Verify the mapping still matches what you tell them to enter in the UI — GitBook creates or updates `gitbook-docs.yaml` when it saves the content mapping, so the two need to agree.
 
 ```yaml
-# docs.yaml, at the project directory (repo root if unset)
+# gitbook-docs.yaml, at the project directory (repo root if unset)
 $schema: https://api.gitbook.com/openapi.yaml#/components/schemas/GitSyncSiteConfig
 site:
   title: [Site title]
@@ -98,7 +98,7 @@ Common issues:
 
 - **"Repository not found"** in the UI — the GitBook app doesn't have access. For GitHub: Settings → Applications → GitBook → Configure, and grant access to the right repo. For GitLab: confirm the access token has `api`, `read_repository`, `write_repository`.
 - **Initial sync direction wrong** — if the user picks "GitBook → GitHub/GitLab" by mistake when the repo's content should have won, GitBook will overwrite the repo with GitBook's (possibly empty) content. They can't undo this except by `git revert`. Be very explicit in the instructions about direction.
-- **Project directory vs. content mapping confusion** — the site's **Project directory** is only where `docs.yaml` lives; each space's actual content directory is set separately in **Content mapping**. Getting these swapped is the most common setup mistake with the new site-wide flow. They can fix the mapping afterward in the site's Git Sync settings, which rewrites `docs.yaml`.
+- **Project directory vs. content mapping confusion** — the site's **Project directory** is only where `gitbook-docs.yaml` lives; each space's actual content directory is set separately in **Content mapping**. Getting these swapped is the most common setup mistake with the new site-wide flow. They can fix the mapping afterward in the site's Git Sync settings, which rewrites `gitbook-docs.yaml`.
 - **Protected branch push errors** — the GitBook app needs to bypass branch protection rules to push. On GitHub: repo settings → branch protection → allow `gitbook-com` to bypass. On GitLab: if `main` is protected, sync from a separate branch and merge that into `main` manually.
 
 ## When there is no remote (local-only)

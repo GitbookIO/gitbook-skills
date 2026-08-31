@@ -66,13 +66,18 @@ jobs:
           GH_TOKEN: ${{ secrets.PUBLIC_DOCS_PAT }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          if ! gh pr view sync/gitbook-skill --repo GitbookIO/public-docs >/dev/null 2>&1; then
-            gh pr create --repo GitbookIO/public-docs \
-              --head sync/gitbook-skill \
-              --base main \
-              --title "Sync gitbook skill.md from gitbook-skills" \
-              --body "Auto-generated from https://github.com/GitbookIO/gitbook-skills/commit/${GITHUB_SHA}. This PR is kept up to date automatically — new merges to gitbook-skills main will overwrite it until it's merged."
-          else
-            echo "PR already open on sync/gitbook-skill, updated in place by the force-push above"
+          set -uo pipefail
+          output=$(gh pr create --repo GitbookIO/public-docs \
+            --head sync/gitbook-skill \
+            --base main \
+            --title "Sync gitbook skill.md from gitbook-skills" \
+            --body "Auto-generated from https://github.com/GitbookIO/gitbook-skills/commit/${GITHUB_SHA}. This PR is kept up to date automatically — new merges to gitbook-skills main will overwrite it until it's merged." 2>&1)
+          status=$?
+          echo "$output"
+          if [ "$status" -ne 0 ]; then
+            if echo "$output" | grep -qi "already exists"; then
+              echo "PR already open on sync/gitbook-skill, updated in place by the force-push above"
+            else
+              exit "$status"
+            fi
           fi
