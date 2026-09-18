@@ -37,6 +37,32 @@
         "All links use relative paths ending in .md",
         "Indentation is consistent throughout"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Our CI has a check that fails the build unless every page's `description:` frontmatter value is wrapped in double quotes. It keeps failing on commits GitBook itself pushed through Git Sync. Fix the check.",
+      "expected_output": "An explanation that GitBook re-serialises `description:` on export in whatever YAML scalar style its serialiser picks (plain, double-quoted, or a `>-` folded block), so a check requiring one style will fight Git Sync. The fix validates that the frontmatter parses and that `description` is non-empty, rather than requiring quotes.",
+      "files": [],
+      "expectations": [
+        "Identifies that GitBook rewrites `description:` on export and may emit a folded block scalar (`>-`)",
+        "Does not simply add `>-` to the list of accepted forms without explaining that the style is not stable",
+        "Replaces the style check with a validity check (frontmatter parses, description non-empty)",
+        "Keeps the input-side rule intact: hand-written or generated descriptions containing `: ` must still be quoted, or the page imports with an empty description and no error",
+        "Does not recommend reverting GitBook's export commits"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Reviewing a Git Sync diff, I see GitBook rewrote some of our cross-space links from https://app.gitbook.com/s/GMqJi8RtGWD6nNlH9QDe/ to https://app.gitbook.com/o/CnvWq8fBYqbTpKXLrLQj/s/GMqJi8RtGWD6nNlH9QDe/. Which form should we standardise on, and should I add a lint rule?",
+      "expected_output": "An explanation that both forms resolve and neither is canonical: write the short form because that is what GitBook emits in nearly every case, leave the org-qualified form alone where it appears, and add no lint rule for either, because normalising between the two forms churns against Git Sync.",
+      "files": [],
+      "expectations": [
+        "States that both URL forms resolve and that the org-qualified form is a valid alias, not an error",
+        "Recommends writing the short `/s/<spaceId>/<path>` form",
+        "Explicitly advises against a lint rule or build step that normalises one form into the other",
+        "Does not claim the org-qualified form is the canonical export form",
+        "Does not recommend reverting the rewrite"
+      ]
     }
   ]
 }

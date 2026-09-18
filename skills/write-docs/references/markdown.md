@@ -61,7 +61,15 @@ console.log(foo);
 [API reference home](https://app.gitbook.com/s/Si95BtOt1VRLWjT7A67V/)
 ```
 
-The pattern is `https://app.gitbook.com/s/<spaceId>/<pagePath>` — GitBook resolves this to the correct published URL at render time, regardless of custom domain or visibility settings. This is the only correct form for cross-space links; don't use `/spaces/<spaceId>/pages/<pageId>` or a relative path.
+The pattern is `https://app.gitbook.com/s/<spaceId>/<pagePath>` — GitBook resolves this to the correct published URL at render time, regardless of custom domain or visibility settings. Don't use `/spaces/<spaceId>/pages/<pageId>` (not a valid link form) or a relative path (never crosses a space boundary).
+
+You'll also see an org-qualified variant in existing and exported content:
+
+```markdown
+[Authentication guide](https://app.gitbook.com/o/2DnmWBpytIOUKeXExonU/s/Si95BtOt1VRLWjT7A67V/authentication)
+```
+
+Both forms resolve and neither is canonical. Write the short one — it's what GitBook emits in nearly every case — but leave the org-qualified form alone where you find it, and never write a check that normalises one into the other. See `references/git-sync-serialisation.md`.
 
 ### Finding a space ID and page path
 
