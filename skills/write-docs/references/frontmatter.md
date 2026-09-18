@@ -120,6 +120,12 @@ description: "Authentication: how it works"
 
 Unquoted special characters cause silent failures in Git Sync — the page imports without a title or description with no error message. When generating frontmatter programmatically from migrated content, quote all string values by default.
 
+### Quoting is an input rule, not a lint rule
+
+Quote on the way *in*. Don't expect quotes to survive: when GitBook exports the space back to the repo it re-emits `description:` in whatever YAML scalar style its serialiser picks — plain when the value is short and safe, double-quoted when it holds something that needs quoting, and a folded block scalar (`>-`) once it runs past roughly 80 columns. All three are valid YAML and mean the same thing.
+
+So never build a validator that requires quoted descriptions. It will pass on your commit, fail on GitBook's export of the same content, and the two will rewrite each other on every sync. Check that the frontmatter parses and that `description` is non-empty. See `git-sync-serialisation.md`.
+
 ## Complete frontmatter example
 
 ```markdown

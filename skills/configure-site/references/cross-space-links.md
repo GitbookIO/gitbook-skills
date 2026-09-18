@@ -16,7 +16,16 @@ Every cross-space link in markdown is a regular link to a `https://app.gitbook.c
 
 The path after the space ID is the page's path inside the space, derived from the file structure (folder names + file slugs). Trailing slash works for the space root.
 
-You'll also see a fully-qualified form in some content: `https://app.gitbook.com/o/<orgId>/s/<spaceId>/...`. Both work; the org-qualified form is slightly more robust against potential future URL changes but the shorter form is what GitBook itself emits in most places.
+You'll also see an org-qualified form in existing content: `https://app.gitbook.com/o/<orgId>/s/<spaceId>/...`.
+
+**Both forms resolve, and neither is canonical.** Write the short form — it's what GitBook emits in nearly every case, and it's one less ID to look up. GitBook's own Git-synced documentation repo carries 430 short-form cross-space links across 64 files against a single real org-qualified one, including short-form and org-qualified links to spaces in the same site sitting side by side.
+
+What matters for a Git-first team is what you *don't* do with that:
+
+- **Don't rewrite the org-qualified form when you meet it.** It's a valid alias, not a mistake someone made.
+- **Don't lint or normalise for either form.** Exports have been observed rewriting short-form links to the org-qualified form; the trigger isn't established and it isn't universal, since GitBook mostly preserves whichever form the file already holds. A check that insists on one form will churn against Git Sync and lose.
+
+See `write-docs`'s `references/git-sync-serialisation.md` for the wider round-trip picture.
 
 ## When to use this vs. relative links
 
@@ -198,7 +207,8 @@ When a page is moved or renamed, GitBook automatically creates a redirect from i
 
 ## Common mistakes
 
-- **Don't use `/spaces/<spaceId>/pages/<pageId>`.** This is not a valid GitBook link form, despite sometimes being suggested — cross-space links use the page's *path*, not its page ID, and the URL is always `https://app.gitbook.com/s/<spaceId>/<path>`.
+- **Don't use `/spaces/<spaceId>/pages/<pageId>`.** This is not a valid GitBook link form, despite sometimes being suggested — cross-space links use the page's *path*, not its page ID. The valid shapes are `https://app.gitbook.com/s/<spaceId>/<path>` and its org-qualified alias.
+- **Don't treat the org-qualified form as a bug.** `https://app.gitbook.com/o/<orgId>/s/<spaceId>/<path>` resolves exactly the same way. Write the short form, but don't rewrite the long one and don't lint for either — see "The URL pattern" above.
 - **Don't try to guess space IDs ahead of time.** They come from the API response after `POST /spaces`. Even a stable-looking ID format is opaque.
 - **Don't use `<published-domain>/...` URLs across spaces** unless you've actually configured that domain. Sites without a custom domain live at `<orghostname>.gitbook.io/<sitehostname>/<sectionpath>/<spacepath>/<page>`, and that URL changes if anyone moves the site or section.
 - **Don't strip the sentinel prefix from `XSPACE_<KEY>`.** Keep the `XSPACE_` prefix in case some future content has unrelated IDs that happen to match a key like `GUIDES`.
