@@ -85,7 +85,7 @@ layout:
 
 * Read SUMMARY.md first when working with existing content
 * Test in GitBook after editing locally
-* Keep SUMMARY.md synchronized with your file structure
+* Keep SUMMARY.md synchronized with your file structure and page titles
 * OpenAPI specs must be uploaded via the UI, API, MCP, or CLI, not embedded in markdown
 
 ### When to Use Which Block
@@ -133,6 +133,7 @@ layout:
 
 * Don't reference the same markdown file twice in SUMMARY.md
 * Keep file paths consistent between SUMMARY.md and actual file locations
+* When you rename a page's title (its `#` heading or `title` frontmatter), also update SUMMARY.md's link text for that page — it drives the sidebar nav, pagination, and relative link text, and won't update itself. Skip this only if the SUMMARY.md entry intentionally uses the quoted link-title override (`[Page main title](page.md "Page link title")`) to show something different on purpose.
 
 **Configuration:**
 
