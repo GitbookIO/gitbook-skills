@@ -38,7 +38,7 @@ curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
 Request body fields:
 
 - `title` (required, 2–128 chars)
-- `type` — `basic | premium | ultimate | sponsored | legacy-basic | legacy-premium` (OpenAPI `SiteType`). Defaults to Ultimate for non-community orgs, Sponsored for community. There is no `type: "site"`. Use `basic` only when the user opts into the free tier.
+- `type` — `basic | premium | ultimate | sponsored`. Default to `ultimate` unless the user opts into the free tier (`basic`).
 - `visibility` — `public | unlisted | share-link | visitor-auth`. Defaults to `public`.
 - `spaces` — optional array of existing space IDs to link immediately. Omit when creating a fresh site without pre-existing spaces.
 

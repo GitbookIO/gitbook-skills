@@ -391,7 +391,7 @@ The steps below are described as outcomes, not endpoint calls — use whichever 
 ### The standard sequence for a new site
 
 1. **Verify access and find the org**: confirm the authenticated user, then list the orgs.
-2. **Create the site** with `{title, type, visibility, spaces?}`. **Default to Ultimate** (`type: "ultimate"`). `type` is the SiteType plan enum (`basic | premium | ultimate | sponsored | legacy-basic | legacy-premium`) — there is no `type: "site"`. OpenAPI defaults to Ultimate for non-community orgs (Sponsored for community). Use `type: "basic"` (free) only when the user explicitly opts in. Don't include `spaces` if no spaces exist yet — you can add them later.
+2. **Create the site** with `{title, type, visibility, spaces?}`. **Default to Ultimate** (`type: "ultimate"`). Use `type: "basic"` (free) only when the user explicitly opts in. Don't include `spaces` if no spaces exist yet — you can add them later.
 3. **Decide how spaces will come into being.** Two paths:
    - **Site-wide Git Sync (recommended, default)**: tell the user to open **Git Sync** from the site sidebar once, connect the repo/branch, and map each space to its directory under **Content mapping**. This single UI pass creates/links every space to the site and wires up sync for all of them at once. The skill's job is to give exact, copyable instructions for that one pass. See `references/git-sync-handoff.md`.
    - **Programmatic-first**: create empty spaces directly, add them to the site as site-spaces, and use content import or template application to load content. The user will still need to wire Git Sync in the UI later if they want bidirectional sync — and when they do, site-wide is still the default to point them at, not one space at a time.
