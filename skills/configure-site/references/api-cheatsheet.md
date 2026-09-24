@@ -29,7 +29,7 @@ curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "My Product Docs",
-    "type": "basic",
+    "type": "ultimate",
     "visibility": "public"
   }' \
   https://api.gitbook.com/v1/orgs/$ORG_ID/sites
@@ -38,7 +38,7 @@ curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
 Request body fields:
 
 - `title` (required, 2–128 chars)
-- `type` — `basic | premium | ultimate | sponsored`. Defaults to `basic`. Premium/ultimate features (custom logos, custom fonts, etc.) require a paid plan.
+- `type` — `basic | premium | ultimate | sponsored`. Default to `ultimate` unless the user opts into the free tier (`basic`).
 - `visibility` — `public | unlisted | share-link | visitor-auth`. Defaults to `public`.
 - `spaces` — optional array of existing space IDs to link immediately. Omit when creating a fresh site without pre-existing spaces.
 
@@ -161,7 +161,7 @@ The created section also gets `path` (URL slug derived from title), `default`, `
 
 ### The auto-created wrapper section gotcha
 
-When you create a site with `type: site` and then add spaces via `POST /site-spaces` (instead of `POST /sections`), GitBook auto-creates a wrapper section named after the site itself to contain them. If you later want to convert to a proper sections-based layout, you have to:
+When you create a site and then add spaces via `POST /site-spaces` (instead of `POST /sections`), GitBook auto-creates a wrapper section named after the site itself to contain them. If you later want to convert to a proper sections-based layout, you have to:
 
 1. Create the new sections you actually want.
 2. `DELETE` the auto-created wrapper section.

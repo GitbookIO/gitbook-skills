@@ -57,7 +57,7 @@ If the user explicitly does not want Git Sync, fall back to the content-import p
 Don't start scaffolding until these are known. If something is missing, ask once with a focused question rather than guessing. (Auth is handled separately — see "How you can talk to GitBook" above.)
 
 - **Organization** — list the user's orgs and **show the list to the user, then ask them to confirm which one is the target by name**. Do this even if they have only one org — confirming once up front is cheap insurance against creating sites in the wrong place. Save the chosen `organizationId` for the rest of the session and refer to the org by its title (not its UUID) when narrating subsequent steps.
-- **Site plan and visibility** — **default to `type: site` on the Ultimate plan**, public visibility, unless the user explicitly says otherwise. Most real customers want the Ultimate feature set (custom domain, AI Assistant, advanced customization, hidden GitBook trademark, custom fonts, custom logos). The free tier (`type: basic`) is appropriate only for clearly low-stakes use cases like solo open-source side projects. If you're unsure, ask: *"I'll set this up on the Ultimate plan unless you'd prefer the free tier — should I downgrade?"* — Ultimate features that are silently absent on `basic` (no AI assistant, no custom fonts, no custom domain) are a much bigger user surprise than briefly confirming the plan.
+- **Site plan and visibility** — **default to `type: "ultimate"`** (Ultimate plan), public visibility, unless the user explicitly says otherwise. Most real customers want the Ultimate feature set (custom domain, AI Assistant, advanced customization, hidden GitBook trademark, custom fonts, custom logos). The free tier (`type: basic`) is appropriate only for clearly low-stakes use cases like solo open-source side projects. If you're unsure, ask: *"I'll set this up on the Ultimate plan unless you'd prefer the free tier — should I downgrade?"* — Ultimate features that are silently absent on `basic` (no AI assistant, no custom fonts, no custom domain) are a much bigger user surprise than briefly confirming the plan.
 - **The content seed** — what's the site being built from? Common shapes:
   - A folder of existing markdown — the cleanest starting point
   - A handful of notes plus a competitor's site as a reference
@@ -87,7 +87,7 @@ The rule: **never make a state-changing change without first showing the user a 
 A good preview is short and concrete:
 
 > About to run, in org **Acme Inc** (`org_abc123`):
-> - Create site **"Acme Platform Docs"** (type: site, plan: ultimate, visibility: public)
+> - Create site **"Acme Platform Docs"** (type: ultimate, visibility: public)
 > - Create 3 empty spaces: **Guides**, **API Reference**, **Changelog**
 > - Add Guides as the default section; create sections for API Reference and Changelog
 >
@@ -391,7 +391,7 @@ The steps below are described as outcomes, not endpoint calls — use whichever 
 ### The standard sequence for a new site
 
 1. **Verify access and find the org**: confirm the authenticated user, then list the orgs.
-2. **Create the site** with `{title, type, visibility, spaces?}`. **Default to Ultimate** (`type: "site"`; the plan tier is set on the site after creation or via the org's billing). Use `type: "basic"` (free) only when the user explicitly opts in. Don't include `spaces` if no spaces exist yet — you can add them later.
+2. **Create the site** with `{title, type, visibility, spaces?}`. **Default to Ultimate** (`type: "ultimate"`). Use `type: "basic"` (free) only when the user explicitly opts in. Don't include `spaces` if no spaces exist yet — you can add them later.
 3. **Decide how spaces will come into being.** Two paths:
    - **Site-wide Git Sync (recommended, default)**: tell the user to open **Git Sync** from the site sidebar once, connect the repo/branch, and map each space to its directory under **Content mapping**. This single UI pass creates/links every space to the site and wires up sync for all of them at once. The skill's job is to give exact, copyable instructions for that one pass. See `references/git-sync-handoff.md`.
    - **Programmatic-first**: create empty spaces directly, add them to the site as site-spaces, and use content import or template application to load content. The user will still need to wire Git Sync in the UI later if they want bidirectional sync — and when they do, site-wide is still the default to point them at, not one space at a time.
