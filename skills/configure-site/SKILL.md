@@ -157,7 +157,7 @@ my-docs/
 A few notes about this layout that often trip people up:
 
 - **`.gitbook.yaml` is optional.** GitBook works fine on the default convention of `README.md` + `SUMMARY.md` per space. Only add a `.gitbook.yaml` when you need to override the root, define redirects, or do something else non-default. The bundled example site (`references/example-site/`) has zero `.gitbook.yaml` files and works perfectly.
-- **`.gitbook/vars.yaml`** holds space-scoped variables that pages can reference inline (e.g. `support_email: support@evolve.com` referenced as `{% vars.support_email %}`). Useful for any value that appears on many pages.
+- **`.gitbook/vars.yaml`** holds space-scoped variables that pages can reference with expression syntax (e.g. `support_email: support@evolve.com` referenced as `<code class="expression">space.vars.support_email</code>`). Useful for any value that appears on many pages. See `write-docs` / `references/frontmatter.md` — do **not** use `{% vars.… %}`.
 - **`.gitbook/includes/<name>.md`** holds reusable content blocks — a snippet you embed in many pages with `{% include "...persona-switcher" %}`. Use these instead of copy-pasting boilerplate.
 - The space directory name (e.g. `guides/`) is what the user maps that space to under **Content mapping** when wiring up site-wide Git Sync — not the site's "Project directory" field, which only points at where `gitbook-docs.yaml` itself lives (the repo root, in this layout). Don't conflate the two; see `references/git-sync-handoff.md`.
 - Consider pre-authoring a `gitbook-docs.yaml` at the repo root that maps every space to its directory (see `references/git-sync-handoff.md` for the shape). GitBook reads it on first sync, so the user has less to fill in by hand during setup.
