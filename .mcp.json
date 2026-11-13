@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "gitbook": {
+      "type": "http",
       "url": "https://mcp.gitbook.com/mcp"
     }
   }

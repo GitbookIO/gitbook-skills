@@ -20,6 +20,14 @@ Running non-interactively (e.g. an AI agent installing on your behalf)? Use the 
 npx -y skills add GitbookIO/gitbook-skills -y
 ```
 
+### Claude Code plugin
+
+In Claude Code 2.1.275 or later, install the plugin in one step. It adds the skills and the GitBook MCP server:
+
+```
+/plugin install gitbook --marketplace GitbookIO/gitbook-skills
+```
+
 ## Available Skills
 
 | Skill | Description |
