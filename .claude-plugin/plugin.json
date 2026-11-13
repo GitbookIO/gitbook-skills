@@ -14,5 +14,7 @@
       "type": "http",
       "url": "https://mcp.gitbook.com/mcp"
     }
-  }
+  },
+  "icon": "./assets/gitbook_icon_dark.svg",
+  "privacyPolicyUrl": "https://gitbook.com/docs/policies/privacy-and-security/statement"
 }
