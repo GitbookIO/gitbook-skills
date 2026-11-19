@@ -176,25 +176,34 @@ Added OAuth 2.0 authentication flow.
 
 **Defining tags in `.gitbook/tags.yaml`:**
 
-Tags must be declared before they can be used. Create `.gitbook/tags.yaml` at the root of the space. Tag slugs must exactly match the values used in `tags=""`:
+Tags must be declared before they can be used. With Git Sync, the tag library lives in `.gitbook/tags.yaml` at the root of the space (source: GitBook docs "Tags" page, change request #1432). It is a map keyed by tag slug, and the slug must exactly match the values used in `tags=""` and in page frontmatter `tags:`:
 
 ```yaml
 # .gitbook/tags.yaml
-- tag: api
-  label: API
-  icon: code
-- tag: security
-  label: Security
-  icon: shield-halved
-- tag: beta
-  label: Beta
-  icon: flask
-- tag: breaking
-  label: Breaking Change
-  icon: triangle-exclamation
+product:
+  label: Product
+  color: blue
+  kind: category
+
+sub-product:
+  label: Sub-product
+  color: blue
+  kind: category
+  parent: product
+
+feature:
+  label: Feature
+  color: green
+  parent: sub-product
 ```
 
-Each entry: `tag` (slug, no spaces), `label` (display text), `icon` (Font Awesome name without `fa-` prefix).
+- `label` — display text readers see (max 50 characters).
+- `kind: category` — makes the entry a **category**. Categories only organize the library; you cannot apply a category to a page or an `{% update %}` block. Omit `kind` for a standard tag.
+- `parent` — the **slug** (not the label) of the parent category or tag. Omit it for a root entry. Create parents before their children.
+- `color` — one of the named palette colors (`default`, `green`, `blue`, `red`, `orange`, `yellow`, `purple`, `pink`, `violet`, `cyan`). A tag may also carry an `icon` or an `emoji`, never both (API schema `RevisionTag`); the YAML spelling for these isn't shown in the docs yet, so check an exported `tags.yaml` before hand-writing them.
+- **Limits** (API schema `RevisionTag`): a slug is immutable once created, and `kind` can't be changed. Categories can nest inside categories (up to three levels deep); a standard tag nests under a category or one other standard tag.
+
+Page tags are stored in the page's frontmatter (`tags:`), not in `tags.yaml`; see `references/frontmatter.md`.
 
 ## Cards
 

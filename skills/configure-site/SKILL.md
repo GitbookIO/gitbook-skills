@@ -439,6 +439,10 @@ Then make targeted changes rather than wholesale replacements. Don't replace who
 - **Git Sync** is for ongoing two-way sync between a Git repo and a site (or, as a fallback, an individual space). This is what we're optimizing for in the standard flow.
 - If the user has already-good content sitting outside both Git and GitBook (e.g. a Notion export), import it, then optionally turn on Git Sync afterward.
 
+## Tags
+
+If the docs use tags (page `tags:` frontmatter or `{% updates %}` entries), the tag library is `.gitbook/tags.yaml` in the repo: a map of slug → `label`, `color`, optional `kind: category`, optional `parent` (see `write-docs/references/blocks.md`). Scaffold categories before the tags that use them. To read the hierarchy or find pages by tag over the API, see "Tags" in `references/api-cheatsheet.md`.
+
 ## Branding and customization
 
 The `SiteCustomizationSettings` schema is large. The bundled `references/example-site/customization.json` is a real export from a production-style demo and is the most useful reference — read it before composing any customization payload. It shows how all the nested fields fit together, how `localizedTitle` maps work, and how conditional header links are structured.
