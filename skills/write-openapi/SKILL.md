@@ -330,4 +330,4 @@ jobs:
             <path_to_spec>
 ```
 
-For token vs browser auth, the MCP Bearer header, and discovery endpoints (`llms.txt`, `.md`), see `references/agent-auth-and-discovery.md`.
+Authenticate the CLI with `gitbook auth --token <token>` (or set `GITBOOK_TOKEN`). `gitbook login` opens a browser, so it doesn't work in CI, over SSH, or in agent sandboxes.

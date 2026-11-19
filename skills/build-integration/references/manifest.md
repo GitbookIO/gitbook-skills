@@ -181,4 +181,4 @@ At runtime the values appear as `context.environment.secrets.CLIENT_ID`.
 | `gitbook help` | Command help. |
 | `gitbook openapi publish <file-or-url> --spec <name> --organization <org_id>` | Publish/update an OpenAPI spec (adjacent tooling, not integration-specific). |
 
-Requires Node v18+. Install with `npm install @gitbook/cli -g`. The old top-level `gitbook new`, `publish`, `dev` and `unpublish` still work as hidden aliases but print a deprecation warning. `gitbook integrations` (plural) is the raw API group (list, get, installations, events, etc.), not the authoring group. See `agent-auth-and-discovery.md` for auth details.
+Requires Node v18+. Install with `npm install @gitbook/cli -g`. The old top-level `gitbook new`, `publish`, `dev` and `unpublish` still work as hidden aliases but print a deprecation warning. `gitbook integrations` (plural) is the raw API group (list, get, installations, events, etc.), not the authoring group. Authenticate with `gitbook auth --token <token>` (or `GITBOOK_TOKEN`), not `gitbook login`; browser sessions can't publish integrations.

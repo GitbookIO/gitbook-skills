@@ -491,4 +491,4 @@ This is the part that has to feel polished. Once the repo is pushed and the site
 - `references/example-site/customization.json` — the customization export from that site, illustrating a complete real-world branding payload
 - `references/example-site/structure.json` — the structure export, showing sections, section-groups, and multi-language site-spaces (English git-synced + auto-translated)
 
-For token auth, the MCP Bearer header and discovery endpoints, see `references/agent-auth-and-discovery.md`.
+For token auth, the MCP Bearer header and the published-docs MCP, see `references/mcp-and-api-auth.md`.

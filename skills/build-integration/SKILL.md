@@ -79,7 +79,7 @@ Full field-by-field schema, scope list, and configuration property types: `refer
 
 The loop has a non-obvious order — **publish comes before local development**:
 
-1. **Prerequisites.** Node 18+, a personal access token from https://app.gitbook.com/account/developer, and the CLI: `npm install @gitbook/cli -g`, then authenticate with `gitbook auth --token <token>` (or `gitbook auth` to be prompted). Use a token, not `gitbook login`: browser (OAuth) sign-in can't publish or unpublish integrations and doesn't work in CI, SSH, or agent sandboxes. If you already ran `gitbook login`, run `gitbook logout` first. The CLI also reads a `GITBOOK_TOKEN` environment variable. See `references/agent-auth-and-discovery.md`. If a token needs to be pasted into the conversation, export it to the environment and never echo it back or commit it.
+1. **Prerequisites.** Node 18+, a personal access token from https://app.gitbook.com/account/developer, and the CLI: `npm install @gitbook/cli -g`, then authenticate with `gitbook auth --token <token>` (or `gitbook auth` to be prompted). Use a token, not `gitbook login`: browser (OAuth) sign-in can't publish or unpublish integrations and doesn't work in CI, SSH, or agent sandboxes. If you already ran `gitbook login`, run `gitbook logout` first. The CLI also reads a `GITBOOK_TOKEN` environment variable. If a token needs to be pasted into the conversation, export it to the environment and never echo it back or commit it.
 2. **Scaffold.** `gitbook integration new [dir]` — prompts for name, title, organization, and scopes.
 3. **Publish once.** `gitbook integration publish` in the project root. This registers the integration (private by default) and prints an install link.
 4. **Install it** into at least one space or site via that link. Local dev doesn't work until it's installed somewhere.
@@ -88,7 +88,7 @@ The loop has a non-obvious order — **publish comes before local development**:
 
 Note the singular/plural split: `gitbook integration` (singular) is the authoring group; `gitbook integrations` (plural) is the raw API group for listing, inspecting and installing integrations already on GitBook.
 
-CLI command reference (including `gitbook whoami` and `gitbook openapi publish`) and `references/agent-auth-and-discovery.md` (token auth, MCP, discovery): `references/manifest.md`.
+CLI command reference (including `gitbook whoami` and `gitbook openapi publish`): `references/manifest.md`.
 
 ## Runtime: fetch, events, environment, OAuth
 
@@ -128,4 +128,3 @@ Re-run `gitbook integration publish` after changing visibility. Before suggestin
 - `references/manifest.md` — every `gitbook-manifest.yaml` field, all scopes, configuration property types, secrets, CLI command reference, installation/configuration flow.
 - `references/runtime.md` — `createIntegration` / `createComponent` / `createOAuthHandler` signatures, event catalog, `context.environment` shape, HTTP in and out.
 - `references/contentkit.md` — full component reference with props, built-in actions, and interactivity recipes (dynamic binding, webframes, modals, unfurling, markdown serialization).
-- `references/agent-auth-and-discovery.md` — token vs browser auth for the CLI, MCP with a Bearer PAT, the published-docs MCP, and discovery endpoints (`llms.txt`, `.md`, `setup.md`).
