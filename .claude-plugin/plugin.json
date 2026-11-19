@@ -1,6 +1,6 @@
 {
   "name": "gitbook",
-  "description": "Comprehensive skill for GitBook documentation — create, manage, and author GitBook sites end-to-end via the GitBook REST API and Git Sync.",
+  "description": "Comprehensive skill for GitBook documentation — create, manage, and author GitBook sites end-to-end via the GitBook MCP, REST API and Git Sync, plus OpenAPI reference docs and integrations.",
   "version": "1.0.0",
   "author": {
     "name": "GitBook",

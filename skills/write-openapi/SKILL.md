@@ -28,7 +28,7 @@ Most of this skill — editing the OpenAPI YAML/JSON itself — is transport-agn
 
 The steps below are described as outcomes ("add the spec", "generate the reference pages") rather than tied to one transport, so they apply whichever you use. If GitBook MCP tools are connected, call those directly — their own schemas describe their parameters. If you're on the REST API path instead, the exact endpoints and request bodies are in "Add or update a specification" below.
 
-- **GitBook MCP** — a full read/write surface over the same capabilities described below, not a narrower view. If it isn't connected yet and the task is substantial enough to benefit (publishing a new spec, generating a full reference — not a one-off tweak), offer to set it up: `claude mcp add --transport http gitbook-mcp https://mcp.gitbook.com/mcp` (then `/mcp` to complete OAuth sign-in — or append `--header "Authorization: Bearer $GITBOOK_TOKEN"` to skip the browser flow). Codex equivalent: `codex mcp add gitbook-mcp --url https://mcp.gitbook.com/mcp`. Note: this is a different server from GitBook's separate, read-only "published docs" MCP, which only exposes already-published content.
+- **GitBook MCP** — covers the same capabilities described below, but writes go through `invoke_operation` rather than named tools. If it isn't connected yet and the task is substantial enough to benefit (publishing a new spec, generating a full reference — not a one-off tweak), offer to set it up: `claude mcp add --transport http gitbook-mcp https://mcp.gitbook.com/mcp` (then `/mcp` to complete OAuth sign-in — or append `--header "Authorization: Bearer $GITBOOK_TOKEN"` to skip the browser flow). Codex equivalent: `codex mcp add gitbook-mcp --url https://mcp.gitbook.com/mcp`. Note: this is a different server from GitBook's separate, read-only "published docs" MCP, which only exposes already-published content.
 - **REST API** (`https://api.gitbook.com/v1`) — the fallback when MCP isn't connected, or for anything MCP doesn't cover. Needs `GITBOOK_TOKEN` as a bearer header on every request.
 
 The same personal access token (from https://app.gitbook.com/account/developer) works as the bearer token for both. MCP additionally supports OAuth as a friendlier alternative to pasting a token.
@@ -78,7 +78,7 @@ Match the task to the right section. For the deeper reference material, two file
 
 A spec must exist in the organization before any block or page can reference it. Adding and updating are the same underlying operation on every transport — pick whichever you have per "How you can talk to GitBook" above. Whichever you use, give the spec a name/slug up front: it's how you reference it later and how you tell multiple specs apart.
 
-**GitBook MCP** — if connected, use its spec tool directly for creating or updating a spec from either a file or a URL; its schema covers both source types.
+**GitBook MCP** — if connected, there is no dedicated OpenAPI tool: find the operation with `search`, inspect it with `describe_operation`, and run it with `invoke_operation` (`createOpenAPISpec` to create, `createOrUpdateOpenAPISpecBySlug` to create-or-replace by slug). Both take the source as a URL or as the spec text.
 
 **REST API** — create with a URL source:
 
@@ -89,16 +89,17 @@ curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
   https://api.gitbook.com/v1/orgs/$ORG_ID/openapi
 ```
 
-or from a file:
+or from the spec text (there is no multipart file upload; `source` is either `{"url": ...}` or `{"text": ...}`):
 
 ```bash
+jq -n --arg slug "<spec-name>" --rawfile text ./openapi.yaml \
+  '{slug: $slug, source: {text: $text}}' |
 curl -s -X POST -H "Authorization: Bearer $GITBOOK_TOKEN" \
-  -F "slug=<spec-name>" \
-  -F "file=@./openapi.yaml" \
+  -H "Content-Type: application/json" -d @- \
   https://api.gitbook.com/v1/orgs/$ORG_ID/openapi
 ```
 
-Update (replace) an existing spec the same way against `PATCH /v1/orgs/{orgId}/openapi/{specId}`.
+Create or replace a spec by slug with `PUT /v1/orgs/{orgId}/openapi/{specSlug}` and body `{"source": {"url": ...}}` or `{"source": {"text": ...}}` (`createOrUpdateOpenAPISpecBySlug`). Don't use `PATCH` for this: `PATCH .../openapi/{specSlug}` only changes the spec's visibility (`updateOpenAPISpecBySlug`).
 
 **GitBook CLI** — a thin wrapper over the same API call, useful in scripts and pipelines (same command adds or updates; running it against a URL also forces a refresh):
 
@@ -106,7 +107,7 @@ Update (replace) an existing spec the same way against `PATCH /v1/orgs/{orgId}/o
 gitbook openapi publish --spec <spec-name> --organization <organization-id> <path-or-url>
 ```
 
-For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/developers/integrations/reference
+For pipeline automation see "Automate with CI/CD". CLI details: https://gitbook.com/docs/docs-as-code/gitbook-cli
 
 **GitBook app UI** — open the **OpenAPI** section in the sidebar, click **Add specification**, name it, then choose to upload a file or enter a hosted URL. Updating depends on the source: URL sources check every 6 hours automatically (click **Check for updates** to pull immediately; switch File to URL via **Edit** in the breadcrumb actions menu); file sources need **Update** to upload a new version.
 
@@ -136,7 +137,7 @@ The Pet object
 
 ## Structure the reference
 
-GitBook builds navigation from the spec's `tags`, so structuring the reference is mostly structuring tags. Full YAML for every extension named here is in `references/extensions.md`.
+GitBook builds navigation from the spec's `tags`, so structuring the reference is mostly structuring tags. (These are OpenAPI spec tags; they are unrelated to GitBook's space content tags used on pages and update blocks.) Full YAML for every extension named here is in `references/extensions.md`.
 
 - **Split operations across pages:** give operations the same tag, and each tag becomes its own page.
 
@@ -329,3 +330,4 @@ jobs:
             <path_to_spec>
 ```
 
+Authenticate the CLI with `gitbook auth --token <token>` (or set `GITBOOK_TOKEN`). `gitbook login` opens a browser, so it doesn't work in CI, over SSH, or in agent sandboxes.

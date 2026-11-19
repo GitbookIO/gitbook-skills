@@ -103,6 +103,18 @@ Each item in `changes` is discriminated by `operation` (OpenAPI
 - **`revert_page`** — `{"operation":"revert_page","page":"<pageId>"}` (optional `revision`,
   optional `block` array). Omitting `revision` reverts to the CR base revision.
 
+- **`insert_tags`** — `{"operation":"insert_tags","tags":[{"label":"Feature","slug":"feature","parent":"sub-product"}]}`.
+  1–50 items, created in array order, so a parent must already exist or appear earlier; the
+  whole batch is rejected if any item is invalid. Item fields: `label` (required, ≤50 chars),
+  `slug` (generated from the label if omitted), `kind` (`"category"` for categories; omit for
+  standard tags), `color`, `icon`/`emoji`, `parent` (slug or `null` for root), `at` (sibling index).
+- **`update_tag`** — `{"operation":"update_tag","tag":"<slug>","label":"…","parent":"<slug>|null","at":0}`;
+  rename, restyle (`color`, `icon`/`emoji`; `null` removes), reparent or reorder. `kind` can't change.
+- **`delete_tag`** — `{"operation":"delete_tag","tag":"<slug>"}`; only an empty category or a
+  standard tag. A deleted tag's children move to its parent, and pages referencing it stop resolving.
+  Which tags a page carries is its frontmatter `tags:` (an `update_page` document change). For
+  Git-synced spaces prefer editing `.gitbook/tags.yaml` in the repo instead.
+
 **`compat` query param** on `POST …/content`: pass `?compat=false` so the response includes
 the affected-page list (`ChangeRequestContentUpdate`). Default is still `true` today but will
 flip; prefer `compat=false` now.

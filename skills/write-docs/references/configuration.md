@@ -65,11 +65,12 @@ When using Git Sync, GitBook creates a `.gitbook` directory in your repository t
   assets/          # Uploaded images and files
   includes/        # Reusable content blocks (exported as individual .md files)
   vars.yaml        # Space-level variables
-  tags.yaml        # Update tags (for {% updates %} blocks)
+  tags.yaml        # Tag library: tags and categories, with parent hierarchy (see blocks.md)
 ```
 
 **Important notes about .gitbook:**
 
+* **Tags**: `.gitbook/tags.yaml` stores the space's tag library as a map of slug → `label`, `color`, optional `kind: category` and `parent` (a parent slug). Tags apply to pages (frontmatter `tags:`) and `{% update %}` blocks; categories organize the hierarchy and can't be applied. Full syntax and limits: `references/blocks.md` → "Defining tags in `.gitbook/tags.yaml`".
 * **Assets**: Images and files uploaded through the GitBook UI are stored in `.gitbook/assets/`
 * **Reusable content**: Each reusable content block is exported as a separate markdown file in `.gitbook/includes/`
 * **Variables**: Space-level variables are stored in `.gitbook/vars.yaml` as key-value pairs

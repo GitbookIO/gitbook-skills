@@ -1,12 +1,15 @@
-- tag: payments
+payments:
   label: Payments
-  icon: credit-card
-- tag: identity
+  color: blue
+
+identity:
   label: Identity
-  icon: id-card
-- tag: connect
+  color: green
+
+connect:
   label: Connect
-  icon: circles-overlap
-- tag: platform
+  color: purple
+
+platform:
   label: Platform
-  icon: layer-group
+  color: orange

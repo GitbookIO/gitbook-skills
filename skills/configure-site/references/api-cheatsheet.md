@@ -109,6 +109,27 @@ Returns `{repoName, installationProvider: "github" | "gitlab", integration, url,
 
 **There is effectively no API to *set up* Git Sync yet.** This is the load-bearing constraint of this whole workflow. There is an operation, `installGitSyncProviderOnTarget`, that accepts either a site or a space as its target — but connecting the GitHub/GitLab account still requires OAuth in the GitBook app, and as of this writing the operation isn't exposed through the GitBook MCP server (`search` for it returns nothing). GitBook is exploring a reusable "connection" that could be set up once and driven by API afterward, but that isn't available yet. Don't design a flow around it — always route Git Sync setup through the UI handoff (`references/git-sync-handoff.md`), and re-check `search`/`describe_operation` occasionally if you want to confirm whether this has changed.
 
+## Tags (categories, subcategories, nested tags)
+
+Spaces have a tag library with a hierarchy: **categories** (organize only, can't be applied to pages), and standard tags that sit under a category. Page tags live in page frontmatter `tags:`; the library lives in `.gitbook/tags.yaml` when Git Sync is on (syntax in `write-docs/references/blocks.md`).
+
+```bash
+# List every tag and category of the published revision, parents before children,
+# each with `parent` and `pageCount` (distinct visible pages tagged with it or any descendant)
+curl -s -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  https://api.gitbook.com/v1/spaces/$SPACE_ID/content/tags                 # listTags
+
+# Narrow the page tree to pages carrying any of these tag/category slugs (OR; includes descendants)
+curl -s -H "Authorization: Bearer $GITBOOK_TOKEN" \
+  "https://api.gitbook.com/v1/spaces/$SPACE_ID/content/pages?tag=feature&tag=beta"   # listPages
+```
+
+- `RevisionTag` fields: `slug` (immutable), `label`, `color`, `kind` (`"category"` or omitted), `parent` (slug, omitted at root), `emoji` or `icon`.
+- `listPages` and `listPagesInChangeRequest` accept `tag` (repeatable). Hidden pages are excluded and unknown slugs match nothing.
+- **Edit tags** through a change request: `POST /spaces/{spaceId}/change-requests/{crId}/content` with `insert_tags`, `update_tag`, `delete_tag` changes (field details in the `cr-create` skill).
+- Over MCP there are no named tag tools: use `search` → `describe_operation` → `invoke_operation` with `listTags` / `listPages`.
+- GitBook docs (change request #1432) also describe `GET /spaces/{spaceId}/content/tags/{tagSlug}/page-count` and `GET /spaces/{spaceId}/content/tags/{tagSlug}/pages`. These are **not in `openapi.json` yet** — confirm with `search`/`describe_operation` before relying on them; `listTags` + `listPages?tag=` already cover the use cases.
+
 ## Site sections, section groups, and site-spaces
 
 A site's navigation is structured as one of three shapes:

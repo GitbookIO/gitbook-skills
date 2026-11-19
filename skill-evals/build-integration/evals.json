@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "I want to build a GitBook integration that adds a custom 'API Status' block to the editor. When inserted, the block should show the current status of our API (fetched from https://status.acme.dev/api/v2/status.json) and have a Refresh button. Set up the whole project for me and explain how I develop and test it locally.",
-      "expected_output": "A complete integration project: gitbook-manifest.yaml with the block declared and matching componentId, entry file with createIntegration/createComponent, a refresh action that fetches the status endpoint, and correct dev-loop instructions (publish first, install, then gitbook dev; don't visit the dev server URL).",
+      "expected_output": "A complete integration project: gitbook-manifest.yaml with the block declared and matching componentId, entry file with createIntegration/createComponent, a refresh action that fetches the status endpoint, and correct dev-loop instructions (gitbook integration publish first, install, then gitbook integration dev; don't visit the dev server URL).",
       "files": []
     },
     {
