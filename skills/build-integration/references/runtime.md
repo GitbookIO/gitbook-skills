@@ -155,7 +155,7 @@ const res = await fetch('https://api.example.com/items', {
 
 ## Local development behavior worth remembering
 
-- `gitbook dev` only works after the integration is published and installed in at least one space/site.
+- `gitbook integration dev` only works after the integration is published and installed in at least one space/site.
 - The dev server URL is not for browsers — traffic is proxied from GitBook. Test inside `app.gitbook.com/o/<org_id>/s/<space_id>`.
 - `console.log` output can land in the *browser* console (render/action paths) or your terminal, depending on where the code executes. Check both.
 - UI changes require a browser refresh; disable browser caching during development.

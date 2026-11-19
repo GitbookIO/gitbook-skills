@@ -18,7 +18,7 @@ For making the interactive runner work as a whole (declaring auth, servers, CORS
 
 ### `x-page-title` / `x-displayName`
 
-Change the display name of a tag, used in navigation and as the page title.
+Change the display name of a tag (an OpenAPI spec tag, not a GitBook space content tag), used in navigation and as the page title.
 
 ```yaml
 openapi: '3.0'

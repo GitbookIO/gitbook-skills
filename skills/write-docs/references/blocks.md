@@ -368,8 +368,8 @@ OpenAPI specifications enable interactive, testable API documentation in GitBook
 
 OpenAPI specifications must be uploaded through one of these methods:
 
-1. **GitBook API** - Use the [OpenAPI endpoints](https://docs.gitbook.com/developers/gitbook-api/api-reference/openapi) to programmatically upload specs
-2. **GitBook CLI** - Use the `gitbook openapi` command
+1. **GitBook API** - Use the [OpenAPI endpoints](https://gitbook.com/docs/developers/gitbook-api/api-reference/openapi) to programmatically upload specs
+2. **GitBook CLI** - Use `gitbook openapi publish <file-or-url> --spec <name> --organization <org-id>`
 3. **GitBook UI** - Upload specs through the web interface
 
 **Once uploaded**, you can reference individual API methods in prose pages using the OpenAPI block:

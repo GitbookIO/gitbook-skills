@@ -50,6 +50,14 @@ layout:
     version: v1.2.3
     api_key: example_key
   ```
+* **`tags:`** - Tags on the page. A string is a standard tag slug; use `tag:` with `primary: true` on one entry to make it the page's primary tag (GitBook can show it in the table of contents):
+
+  ```yaml
+  tags:
+    - news
+    - tag: beta
+      primary: true
+  ```
 * **`if:`** - Adaptive content visibility condition. Controls when the page is visible based on visitor attributes:
 
   ```yaml

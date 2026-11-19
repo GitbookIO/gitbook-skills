@@ -1,7 +1,7 @@
 {
   "name": "gitbook",
   "version": "1.0.0",
-  "description": "GitBook skills for Grok — create and configure GitBook documentation sites via the REST API, author GitBook-flavored Markdown pages, and publish OpenAPI reference docs.",
+  "description": "GitBook skills for Grok — create and configure GitBook documentation sites via the REST API, author GitBook-flavored Markdown pages, and publish OpenAPI reference docs, and build integrations.",
   "author": {
     "name": "GitBook",
     "email": "support@gitbook.com",

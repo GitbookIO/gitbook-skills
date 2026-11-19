@@ -33,7 +33,7 @@ In Claude Code 2.1.275 or later, install the plugin in one step. It adds the ski
 | Skill | Description |
 |-------|-------------|
 | [`write-docs`](skills/write-docs) | Author and edit GitBook-flavored Markdown pages |
-| [`configure-site`](skills/configure-site) | Create and configure GitBook sites end-to-end via the REST API |
+| [`configure-site`](skills/configure-site) | Create and configure GitBook sites end-to-end via the GitBook MCP or REST API |
 | [`write-openapi`](skills/write-openapi) | Author and publish OpenAPI reference docs in GitBook |
 | [`cr-create`](skills/cr-create) | Drive a GitBook docs review flow via the REST API — create a change request, push content, request review, fix comments |
 | [`cr-review`](skills/cr-review) | Review GitBook change requests via the REST API — discover CRs, summarize changes, comment, approve or request changes |

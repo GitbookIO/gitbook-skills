@@ -5,6 +5,8 @@ metadata:
 description: "Write, author, edit, and format GitBook documentation pages in Git-synced repos, IDEs, or any text editor. Use whenever a task involves creating or editing a GitBook markdown page, writing or updating a README.md or SUMMARY.md, inserting a hint, tab, stepper, card, or other GitBook block, configuring page frontmatter or layout options, setting up variables or expressions, or formatting content for GitBook outside the GitBook UI."
 ---
 
+# Write GitBook docs
+
 ### When to Use This Skill
 
 Use this skill when working with GitBook documentation through:
@@ -173,7 +175,7 @@ import is still running.
 
 When a space has Git Sync configured and you have (or can get) a local checkout of the synced repo, **prefer editing the files directly and committing/pushing** — Git Sync propagates the change to GitBook. This holds even in an MCP session where a change-request content-push tool (e.g. `updateChangeRequestContent`) is available and connected: the tool being one call away isn't a reason to bypass Git as the source of truth. An agent that discovers it *can* push straight into a CR should still check whether Git Sync is set up and reachable before doing so.
 
-Reach for the change-request content-push path instead (MCP's `updateChangeRequestContent` or similar, or the REST `POST .../change-requests/<cr>/content` endpoint — see the `cr-create` skill) when:
+Reach for the change-request content-push path instead (the `updateChangeRequestContent` operation via the MCP's `invoke_operation`, or the REST `POST .../change-requests/<cr>/content` endpoint — see the `cr-create` skill) when:
 
 - the space has no Git Sync configured yet (e.g. a brand-new space still mid-setup),
 - there's no local Git checkout available in the current environment (no filesystem access to the synced repo), or
