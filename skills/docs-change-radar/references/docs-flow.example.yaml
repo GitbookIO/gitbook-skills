@@ -1,0 +1,60 @@
+# docs-flow.yaml: optional per-repository settings for the docs-change-radar skill.
+# Copy to the root of the docs repository and fill in. Every key is optional;
+# the skill asks for anything missing. Holds no secrets: tokens stay in the
+# environment or the connector.
+
+site:
+  organization: ""        # GitBook organization ID
+  id: ""                  # GitBook site ID
+  spaces:                 # spaces the radar sweeps; omit to sweep every space on the site
+    - key: docs
+      directory: ./docs   # path in this repo, for Git-synced spaces
+    - key: api-reference
+      directory: ./api-reference
+  exclude:                # paths the radar skips, in addition to its built-in exclusions.
+                          # Do not list the changelog: the radar never edits old entries,
+                          # but it reads them as evidence of what changed and when.
+    - "**/archive/**"
+
+style_guide:
+  # Where the team's style guide lives. Every edit and suggestion follows it.
+  # Set one. Leave all blank and the skill looks for the site's GitBook style
+  # guide, then for a guide in this repository, then asks.
+  gitbook_space: ""       # ID of the GitBook style guide space
+  path: ""                # file or folder in this repo, e.g. ./STYLE.md
+  url: ""                 # a published page or document
+
+delivery:
+  default: pull-request   # pull-request | change-request
+  base_branch: main
+  draft: true             # open drafts first; request review only after the requester has looked
+
+tracker:
+  tool: ""                # linear | jira | github | other
+  followups:
+    project: ""           # where follow-up tickets go (team, project, or repo)
+    labels: [docs]
+    without_tracker: checklist   # checklist (in the draft description) | text (paste-ready tickets)
+  docs_in_review_status: ""   # status to move a source ticket to once the draft is up; blank = leave it
+
+thread:
+  tool: ""                # slack | teams | ticket-comments | other
+  channel: ""             # fallback when a request did not come from a thread
+
+reviewers:
+  default: []             # names or handles
+  by_path:
+    "api-reference/**": []
+    "docs/billing/**": []
+  require_approvals: 1
+
+templates:
+  how-to: ""              # path to the site's own template pages; blank = skill defaults
+  concept: ""
+  reference: ""
+  troubleshooting: ""
+  changelog: ""
+
+publish:
+  confirm_before_merge: true   # the skill asks before every merge regardless; kept here for visibility
+  hold_until_live: true        # do not merge docs for a change that has not shipped

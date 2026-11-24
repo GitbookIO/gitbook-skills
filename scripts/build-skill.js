@@ -41,16 +41,19 @@ const SKILLS = [
   { dir: "cr-create", title: "Create & Manage Change Requests" },
   { dir: "cr-review", title: "Review Change Requests" },
   { dir: "build-integration", title: "Build an Integration" },
+  { dir: "docs-change-radar", title: "Docs Change Radar" },
 ];
 
 const UMBRELLA_DESCRIPTION =
   "Work with GitBook end-to-end: author and format GitBook-flavored Markdown pages and blocks " +
   "(hints, tabs, steppers); design, scaffold, and configure documentation sites via the GitBook " +
   "REST API and Git Sync; generate and troubleshoot OpenAPI/Swagger API reference docs; create, " +
-  "push content to, and manage change requests and reviews over the REST API; and build GitBook " +
-  "integrations (custom blocks, ContentKit UI, events, OAuth). Use whenever a task involves " +
+  "push content to, and manage change requests and reviews over the REST API; build GitBook " +
+  "integrations (custom blocks, ContentKit UI, events, OAuth); and turn a ticket or pasted context into a reviewed " +
+  "docs change with a site-wide sweep for other affected pages. Use whenever a task involves " +
   "GitBook: writing or editing docs, SUMMARY.md/.gitbook.yaml, site structure, OpenAPI " +
-  "references, change-request review flows, or building a GitBook app/integration.";
+  "references, change-request review flows, documenting a product change, or building a GitBook " +
+  "app/integration.";
 
 function parseTopLevelYaml(text) {
   const lines = text.split("\n");
@@ -166,7 +169,7 @@ This page is generated automatically from [GitbookIO/gitbook-skills](${REPO_URL}
 
 # GitBook
 
-GitBook's skill for AI coding agents, covering six areas of GitBook work. Each section below is one of the six skills in [gitbook-skills](${REPO_URL}) — read its description to see if it matches your task, then fetch its linked page for full instructions before acting. Each skill's instructions link out to further reference material (full block syntax, API payloads, troubleshooting) in [gitbook-skills](${REPO_URL}) under \`skills/<name>/references/\` when you need more depth than the top-level instructions.
+GitBook's skill for AI coding agents, covering seven areas of GitBook work. Each section below is one of the seven skills in [gitbook-skills](${REPO_URL}) — read its description to see if it matches your task, then fetch its linked page for full instructions before acting. Each skill's instructions link out to further reference material (full block syntax, API payloads, troubleshooting) in [gitbook-skills](${REPO_URL}) under \`skills/<name>/references/\` when you need more depth than the top-level instructions.
 
 ${entries}
 `;
