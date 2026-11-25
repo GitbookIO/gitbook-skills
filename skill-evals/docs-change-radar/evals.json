@@ -1,0 +1,76 @@
+{
+  "skill_name": "docs-change-radar",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "ENG-482 just shipped: we raised the file upload limit from 50 MB to 200 MB on all paid plans, and renamed 'Attachments' to 'Files' in the sidebar. The docs are in ./docs (Git-synced to GitBook). Update the upload limits page.",
+      "expected_output": "A change brief with the terms to search (50 MB, Attachments, Files, upload limit), a sweep of the whole repo rather than only the named page, findings sorted into tiers with quoted lines, and a single plan presented for confirmation before any file is edited or ticket filed.",
+      "files": [],
+      "expectations": [
+        "Searches the entire docs repository for the old limit and the old name, not only the upload limits page",
+        "Checks reusable blocks, variables, SUMMARY.md and image alt text or captions as part of the sweep",
+        "Sorts findings into must-change, probably-affected and worth-a-look, each with the page and a quoted line",
+        "Does not propose rewriting past changelog or release-note entries that mention the old limit",
+        "Presents one plan and waits for confirmation before editing files or creating tickets",
+        "Proposes a single pull request for the main edit and the must-change findings, not one per page",
+        "For each page it will edit, shows the current sentence and the proposed replacement sentence",
+        "Opens with a TL;DR that says what was scanned, how many pages need an update, and names each page in plain words",
+        "Refers to pages by title, and does not show the search log or hit counts unless asked"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you write the docs for PROJ-2291? It's the new SSO group mapping feature. No Jira connector here so I'll paste it: 'As an admin I can map IdP groups to workspace roles. Settings > Security > Group mapping. Enterprise only. Behind flag sso_group_mapping until March 3.' Our GitBook space isn't on Git Sync.",
+      "expected_output": "A plan that names a doc template and shows its outline, chooses a change request for delivery, treats the feature as not yet live, and writes follow-up tickets as paste-ready text because no tracker is connected.",
+      "files": [],
+      "expectations": [
+        "Names the doc template it intends to use and shows the outline for confirmation",
+        "Chooses a GitBook change request as the delivery path because the space is not Git-synced",
+        "Flags that the feature is behind a flag until a date and that the draft must not merge before it is live",
+        "Does not claim to have created Jira tickets; provides follow-up tickets as text to paste",
+        "Considers whether an existing SSO or security page should own the topic before creating a new page",
+        "Does not invent product behavior the pasted ticket does not state; asks or marks gaps for the reviewer"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The docs change request for ENG-482 has been out for review since yesterday. Check on it and publish if it's good.",
+      "expected_output": "Reads the review state and open comments on the change request, reports who it is waiting on if not approved, and if approved asks for confirmation before merging, then verifies the live page and updates the ticket and thread.",
+      "files": [],
+      "expectations": [
+        "Reads the change request's reviews and comments before doing anything else",
+        "Does not merge while a human comment is unresolved or changes are requested",
+        "Asks for explicit confirmation before merging even when the review is approved",
+        "After merging, verifies the published page and reports the live URL",
+        "Leaves follow-up tickets open rather than closing them with the source ticket"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "No ticket for this one, just notes from standup: we're dropping the 'Team' plan next month. Existing Team customers get moved to 'Business' at the same price, and the 5-seat minimum goes away. Seat invites now live under Members instead of Billing. Can you sort the docs out? Repo is ./docs.",
+      "expected_output": "Works from the pasted notes without asking for a ticket to exist, proposes a short reference for the change, sweeps the whole repository for the removed plan name, the seat minimum and the old menu path, and presents one plan that records follow-ups without requiring a tracker.",
+      "files": [],
+      "expectations": [
+        "Proceeds from the pasted context and does not require or invent a ticket identifier",
+        "Proposes a short title or reference for the change to use in the draft and report",
+        "Searches for the removed plan name, the seat minimum and the old menu path across the whole repository, including pricing or comparison tables",
+        "Treats the change as not yet live and says the draft should not merge before it takes effect",
+        "Offers follow-ups as a checklist in the draft or as paste-ready text rather than claiming tickets were filed",
+        "Asks who should review, since pasted notes name no reviewer"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Our style guide is the Style Guide space attached to the docs site in GitBook (sentence-case headings, UI labels in bold, no 'simply' or 'just', second person). Write the docs for this: the Export button moved from the page menu to the toolbar and now also exports to DOCX. Repo is ./docs.",
+      "expected_output": "Reads the team's GitBook style guide before sweeping, names it in the plan, applies its rules to every proposed edit, and does not report unrelated style violations elsewhere on the site as radar findings.",
+      "files": [],
+      "expectations": [
+        "Locates and reads the site's style guide in GitBook before planning, without creating a new style guide",
+        "Names the style guide and where it was read from in the plan",
+        "Proposed headings, UI labels and wording follow the stated rules (sentence case, bold UI labels, second person, no 'simply' or 'just')",
+        "Does not list pre-existing style violations unrelated to the Export change as findings",
+        "If the style guide cannot be read, says so and does not draft against assumed rules"
+      ]
+    }
+  ]
+}

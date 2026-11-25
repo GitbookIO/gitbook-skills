@@ -38,6 +38,7 @@ In Claude Code 2.1.275 or later, install the plugin in one step. It adds the ski
 | [`cr-create`](skills/cr-create) | Drive a GitBook docs review flow via the REST API — create a change request, push content, request review, fix comments |
 | [`cr-review`](skills/cr-review) | Review GitBook change requests via the REST API — discover CRs, summarize changes, comment, approve or request changes |
 | [`build-integration`](skills/build-integration) | Build, develop, and publish GitBook integrations — custom blocks, ContentKit UI, events, OAuth |
+| [`docs-change-radar`](skills/docs-change-radar) | Autocomplete for a docs change — name one change, and it finds every other page, reusable block, variable, and screenshot that has to change with it, proposes the edits in your style guide, and drafts one PR or change request |
 
 ## Example prompts
 
@@ -79,6 +80,19 @@ Add an OpenAPI reference section to my site from this spec URL, wire up the inte
 ```
 
 Uses [`write-openapi`](skills/write-openapi) to generate API reference pages, configure the "Test it" runner, and customize operations with GitBook `x-*` extensions.
+
+</details>
+
+<details>
+<summary><strong>Find everything a change affects, then update it</strong></summary>
+
+<br />
+
+```
+Write the docs for ENG-482 (or: for the change described below). Update the obvious pages, then check the rest of the site for anything else this change makes out of date, and open one draft for review.
+```
+
+Uses [`docs-change-radar`](skills/docs-change-radar) to read the ticket or pasted context, sweep every page, reusable block, variable, and screenshot for what the change affects, draft a single pull request or change request, and file follow-up tickets for the rest.
 
 </details>
 
